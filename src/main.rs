@@ -15,7 +15,7 @@ fn main() {
 
     let client = Client::new();
     let mut headers = Headers::new();
-    headers.set(ContentType::plaintext());
+    headers.set(ContentType::form_url_encoded());
 
     /* Example Request
        https://slack.com/api/chat.postMessage?
@@ -27,9 +27,8 @@ fn main() {
         "&username=carl_winslow&channel=%23carls-place&text=hi&pretty=1"
     );
 
-    println!("{:?}", request_string);
-
-    let mut res = client.post("https://slack.com/api/chat.postMessage")
+    let mut res =
+        client.post("https://slack.com/api/rtm.start")
         .body(request_string)
         .headers(headers)
         .send()
