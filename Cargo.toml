@@ -4,5 +4,6 @@ version = "0.1.0"
 authors = ["Bryan Mytko <bryanmytko@gmail.com>"]
 
 [dependencies]
+hyper = "*"
 dotenv = "*"
 dotenv_macros = "*"
