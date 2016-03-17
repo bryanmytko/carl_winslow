@@ -1,3 +1,7 @@
+#![feature(plugin)]
+#![plugin(dotenv_macros)]
+extern crate dotenv;
+
 fn main() {
-    println!("Hello, world!");
+    println!("{}", &dotenv!("APIKEY"));
 }
