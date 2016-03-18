@@ -5,8 +5,6 @@ extern crate hyper;
 extern crate websocket;
 extern crate rustc_serialize as serialize;
 
-use std::io::Read;
-
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
 
@@ -16,37 +14,15 @@ use websocket::message::Type;
 
 use serialize::json::Json;
 
+mod connection;
+use connection::Connection;
+
 fn main() {
-    /* @TODO Move to handshake / connect module */
-    let client = Client::new();
-    let mut headers = Headers::new();
-    headers.set(ContentType::form_url_encoded());
 
-    let request_string = concat!(
-        "token=",
-        dotenv!("APIKEY")
-    );
+    let ws_uri = Connection::handshake();
+    println!("[Debug] ws_uri: {}", ws_uri);
 
-    let mut handshake =
-        client.post("https://slack.com/api/rtm.start")
-        .body(request_string)
-        .headers(headers)
-        .send()
-        .unwrap();
-
-    let mut response = String::new();
-    handshake.read_to_string(&mut response).unwrap();
-
-    let json_response = Json::from_str(&response).unwrap();
-    let json_response_object = json_response.as_object().unwrap();
-    let ws_url = json_response_object.get("url").unwrap();
-    let ws_url_string = ws_url.as_string().unwrap();
-
-    let uri = Url::parse(ws_url_string).unwrap();
-
-    println!("{}", uri);
-
-    let request = WSClient::connect(uri).unwrap();
+    let request = WSClient::connect(ws_uri).unwrap();
     let response = request.send().unwrap();
 
     match response.validate() {
