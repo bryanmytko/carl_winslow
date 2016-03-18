@@ -7,3 +7,5 @@ authors = ["Bryan Mytko <bryanmytko@gmail.com>"]
 hyper = "*"
 dotenv = "*"
 dotenv_macros = "*"
+rustc-serialize = "0.3.18"
+websocket = "0.15.2"
