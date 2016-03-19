@@ -1,5 +1,7 @@
 use std::io::stdin;
 use std::io::{self, Write};
+use std::sync::mpsc;
+use websocket::{Client as WSClient, Message, Sender, Receiver};
 
 pub struct LoopManager {
     threads: u32,
@@ -12,7 +14,7 @@ impl LoopManager {
         }
     }
 
-    pub fn main(&self){
+    pub fn main(&self, tx: mpsc::Sender<Message>){
         self.print_prompt();
 
         loop {
@@ -23,22 +25,23 @@ impl LoopManager {
             let message = match formatted_command {
                 "\\q" => {
                     println!("Disconnecting!");
-                    break;
+                    // @TODO send actual Message::close() or similar to tx
+                    Message::text("closing".to_owned())
+
                 },
-                // "pint" => Message::ping(b"PING".to_vec()),
                 _ => {
-                    io::stdout().write(b"Unknown Command!\n");
                     self.print_prompt();
+                    Message::text(formatted_command.to_owned())
                 }
             };
 
-    //      match tx.send(message) {
-    //         Ok(()) => (),
-    //         Err(e) => {
-    //             println!("Main Loop: {:?}", e);
-    //             break;
-    //         }
-    //      }
+            match tx.send(message) {
+                Ok(()) => (),
+                Err(e) => {
+                    println!("Main Loop: {:?}", e); // debug
+                    break;
+                }
+            }
         }
     }
 

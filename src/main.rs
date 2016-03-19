@@ -106,7 +106,7 @@ fn main() {
     });
 
     let loop_manager = LoopManager::new();
-    loop_manager.main();
+    loop_manager.main(tx);
 
     // @TODO Child threads need to exit
     println!("Waiting for child threads to exit");
