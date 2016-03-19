@@ -18,6 +18,7 @@ use std::io::{self, Write};
 use serialize::json::Json;
 use std::thread;
 use std::sync::mpsc;
+use std::str::from_utf8;
 
 mod connection;
 mod loop_manager;
@@ -84,7 +85,7 @@ fn main() {
     let receive_loop = thread::spawn(move || {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
-                Ok(m) => m,
+                Ok(m) => { println!("Message received: {:?}", m); m },
                 Err(e) => {
                     println!("Receive Loop: {:?}", e);
                     let _ = tx_1.send(Message::close());
@@ -92,18 +93,30 @@ fn main() {
                 }
             };
             match message.opcode {
-                Type::Close => {
-                    let _ = tx_1.send(Message::close());
-                    return;
-                }
-                Type::Ping => match tx_1.send(Message::pong(message.payload)) {
-                    Ok(()) => (),
-                    Err(e) => {
-                        println!("Receive Loop: {:?}", e);
-                        return;
+                Type::Text => {
+                    let tmp = from_utf8(&*message.payload).unwrap();
+                    let msg_json = Json::from_str(tmp).unwrap();
+                    let msg_object = msg_json.as_object().unwrap();
+
+                    // @TODO parse from String(&str)
+                    match msg_object.get("text") {
+                        Some(s) => println!("Slack Message: {:?}", &s),
+                        // @TODO Do we even care about None here?
+                        None => println!("Non-text message"),
                     }
                 },
-                _ => println!("Receive Loop: {:?}", message),
+                Type::Close => {
+                  let _ = tx_1.send(Message::close());
+                  return;
+                }
+                Type::Ping => match tx_1.send(Message::pong(message.payload)) {
+                  Ok(()) => (),
+                  Err(e) => {
+                    println!("Receive Loop: {:?}", e);
+                    return;
+                  }
+                },
+              _ => println!("Receive Loop: {:?}", message),
             }
         }
     });
