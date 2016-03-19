@@ -98,9 +98,13 @@ fn main() {
                     let msg_json = Json::from_str(tmp).unwrap();
                     let msg_object = msg_json.as_object().unwrap();
 
-                    // @TODO parse from String(&str)
                     match msg_object.get("text") {
-                        Some(s) => println!("Slack Message: {:?}", &s),
+                        Some(m) => {
+                            match m.as_string() {
+                                Some(s) => println!("Slack Message: {:?}", s),
+                                None => println!("[Debug] Text Message: None"),
+                            }
+                        },
                         // @TODO Do we even care about None here?
                         None => println!("Non-text message"),
                     }
