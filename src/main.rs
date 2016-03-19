@@ -12,7 +12,12 @@ use websocket::client::request::Url;
 use websocket::{Client as WSClient, Message, Sender, Receiver};
 use websocket::message::Type;
 
+use std::io::stdin;
+use std::io::{self, Write};
+
 use serialize::json::Json;
+use std::thread;
+use std::sync::mpsc;
 
 mod connection;
 mod loop_manager;
@@ -21,82 +26,93 @@ use connection::Connection;
 use loop_manager::LoopManager;
 
 fn main() {
-
     let ws_uri = Connection::handshake();
     println!("[Debug] ws_uri: {}", ws_uri);
 
     let request = WSClient::connect(ws_uri).unwrap();
     let response = request.send().unwrap();
 
+    response.validate().unwrap();
+
     match response.validate() {
         Ok(()) => {
             println!("\nConnected! Welcome to Carl Winslow Bot. Enter a command:");
             println!("(type \\q to quit)\n");
 
-            let loop_manager = LoopManager::new();
-            loop_manager.main();
         },
         Err(e) => { println!("Error {:?}", e); }
     }
 
-// let receive_loop = thread::spawn(move || {
-// // Receive loop
-// for message in receiver.incoming_messages() {
-// let message: Message = match message {
-// Ok(m) => m,
-// Err(e) => {
-// println!("Receive
-// Loop:
-// {:?}",
-// e);
-// let
-// _ = tx_1.send(Message::close());
-// return;
-// }
-// };
-// match message.opcode {
-// Type::Close => {
-// // Got
-// a close message, so send a
-// close message and return
-// let _ = tx_1.send(Message::close());
-// return;
-// }
-// Type::Ping =>
-// match
-// tx_1.send(Message::pong(message.payload))
-// {
-// //
-// Send a
-// pong
-// in
-// response
-// Ok(())
-// =>
-// (),
-// Err(e)
-// =>
-// {
-// println!("Receive
-// Loop:
-// {:?}",
-// e);
-// return;
-// }
-// },
-// //
-// Say
-// what
-// we
-// received
-// _
-// =>
-// println!("Receive
-// Loop:
-// {:?}",
-// message),
-// }
-// }
-// });
-//
+    let (mut sender, mut receiver) = response.begin().split();
+    let (tx, rx) = mpsc::channel();
+    let tx_1 = tx.clone();
+
+    let send_loop = thread::spawn(move || {
+        loop {
+            let message = match rx.recv() {
+                Ok(message) => {
+                    println!("Message: {:?}", message);
+                },
+                Err(e) => {
+                    println!("Send Loop: {:?}", e);
+                    return;
+                },
+            };
+            // match message.opcode {
+            //     Type::Close => {
+            //         let _ =
+            //             sender.send_message(&message);
+            //             return;
+            //     },
+            //     _ => (),
+            // }
+            // // Send the message
+            // match sender.send_message(&message) {
+            //     Ok(()) => (),
+            //     Err(e) => {
+            //         println!("Send Loop: {:?}", e);
+            //         let _ = sender.send_message(&Message::close());
+            //         return;
+            //     }
+            // }
+        }
+    });
+
+    let receive_loop = thread::spawn(move || {
+        for message in receiver.incoming_messages() {
+            let message: Message = match message {
+                Ok(m) => m,
+                Err(e) => {
+                    println!("Receive Loop: {:?}", e);
+                    let _ = tx_1.send(Message::close());
+                    return;
+                }
+            };
+            match message.opcode {
+                Type::Close => {
+                    let _ = tx_1.send(Message::close());
+                    return;
+                }
+                Type::Ping => match tx_1.send(Message::pong(message.payload)) {
+                    Ok(()) => (),
+                    Err(e) => {
+                        println!("Receive Loop: {:?}", e);
+                        return;
+                    }
+                },
+                _ => println!("Receive Loop: {:?}", message),
+            }
+        }
+    });
+
+    let loop_manager = LoopManager::new();
+    loop_manager.main();
+
+    // @TODO Child threads need to exit
+    println!("Waiting for child threads to exit");
+
+    let _ = send_loop.join();
+    let _ = receive_loop.join();
+
+    println!("Exited");
 }
