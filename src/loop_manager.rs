@@ -25,11 +25,20 @@ impl LoopManager {
                     println!("Disconnecting!");
                     break;
                 },
+                // "pint" => Message::ping(b"PING".to_vec()),
                 _ => {
                     io::stdout().write(b"Unknown Command!\n");
                     self.print_prompt();
                 }
             };
+
+    //      match tx.send(message) {
+    //         Ok(()) => (),
+    //         Err(e) => {
+    //             println!("Main Loop: {:?}", e);
+    //             break;
+    //         }
+    //      }
         }
     }
 
