@@ -14,11 +14,11 @@ use websocket::message::Type;
 
 use serialize::json::Json;
 
-use std::io::stdin;
-use std::io::{self, Write};
-
 mod connection;
+mod loop_manager;
+
 use connection::Connection;
+use loop_manager::LoopManager;
 
 fn main() {
 
@@ -32,45 +32,71 @@ fn main() {
         Ok(()) => {
             println!("\nConnected! Welcome to Carl Winslow Bot. Enter a command:");
             println!("(type \\q to quit)\n");
-            print_prompt();
+
+            let loop_manager = LoopManager::new();
+            loop_manager.main();
         },
         Err(e) => { println!("Error {:?}", e); }
     }
 
-    /* Start main loop */
-    loop {
-        let mut command = String::new();
-        stdin().read_line(&mut command).unwrap();
-        let formatted_command = command.trim();
-
-
-        let message = match formatted_command {
-            "\\q" => {
-                println!("Disconnecting!");
-                break;
-            },
-            _ => {
-                io::stdout().write(b"Unknown Command!\n");
-                print_prompt();
-            }
-            // "ping" => {
-            //     Message::ping(b"PING".to_vec()),
-            //     _ => Message::text(trimmed.to_string()),
-            //  }
-        };
-
-        // match tx.send(message) {
-        //     Ok(()) => (),
-        //     Err(e) => {
-        //         println!("Main Loop: {:?}", e);
-        //         break;
-        //     }
-        // }
-    }
-
-    fn print_prompt(){
-        io::stdout().flush();
-        io::stdout().write(b"> ");
-        io::stdout().flush();
-    }
+// let receive_loop = thread::spawn(move || {
+// // Receive loop
+// for message in receiver.incoming_messages() {
+// let message: Message = match message {
+// Ok(m) => m,
+// Err(e) => {
+// println!("Receive
+// Loop:
+// {:?}",
+// e);
+// let
+// _ = tx_1.send(Message::close());
+// return;
+// }
+// };
+// match message.opcode {
+// Type::Close => {
+// // Got
+// a close message, so send a
+// close message and return
+// let _ = tx_1.send(Message::close());
+// return;
+// }
+// Type::Ping =>
+// match
+// tx_1.send(Message::pong(message.payload))
+// {
+// //
+// Send a
+// pong
+// in
+// response
+// Ok(())
+// =>
+// (),
+// Err(e)
+// =>
+// {
+// println!("Receive
+// Loop:
+// {:?}",
+// e);
+// return;
+// }
+// },
+// //
+// Say
+// what
+// we
+// received
+// _
+// =>
+// println!("Receive
+// Loop:
+// {:?}",
+// message),
+// }
+// }
+// });
+//
 }
