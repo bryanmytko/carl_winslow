@@ -25,6 +25,9 @@ mod loop_manager;
 use connection::Connection;
 use loop_manager::LoopManager;
 
+const MSG_WELCOME: &'static str = "\nConnected! Welcome to Carl Winslow Bot. \
+    Enter a command:\n(type \\q to quit)\n ";
+
 fn main() {
     let ws_uri = Connection::handshake();
     println!("[Debug] ws_uri: {}", ws_uri);
@@ -36,12 +39,12 @@ fn main() {
 
     match response.validate() {
         Ok(()) => {
-            println!("\nConnected! Welcome to Carl Winslow Bot. Enter a command:");
-            println!("(type \\q to quit)\n");
-
+          println!("{}", MSG_WELCOME);
         },
         Err(e) => { println!("Error {:?}", e); }
     }
+
+    // @TODO Channels should be extracted from main
 
     let (mut sender, mut receiver) = response.begin().split();
     let (tx, rx) = mpsc::channel();
