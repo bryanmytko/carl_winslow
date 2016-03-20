@@ -101,7 +101,11 @@ fn main() {
                     match msg_object.get("text") {
                         Some(m) => {
                             match m.as_string() {
-                                Some(s) => println!("Slack Message: {:?}", s),
+                                Some(s) => {
+                                  // Check sender here
+                                  tx_1.send(Message::text("got it"));
+                                  println!("Slack Message: {:?}", s);
+                                }
                                 None => println!("[Debug] Text Message: None"),
                             }
                         },
