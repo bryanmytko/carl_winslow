@@ -14,8 +14,9 @@ use websocket::message::Type;
 
 use std::io::stdin;
 use std::io::{self, Write};
+use std::collections::BTreeMap;
 
-use serialize::json::Json;
+use serialize::json::{self, Json, ToJson};
 use std::thread;
 use std::sync::mpsc;
 use std::str::from_utf8;
@@ -29,6 +30,25 @@ use loop_manager::LoopManager;
 const MSG_WELCOME: &'static str = "\nConnected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
 
+struct Msg {
+    Id: u32,
+    Type: String,
+    Channel: String,
+    Text: String,
+}
+
+impl ToJson for Msg {
+    fn to_json(&self) -> Json {
+        let mut d = BTreeMap::new();
+        d.insert("id".to_string(), self.Id.to_json());
+        d.insert("type".to_string(), self.Type.to_json());
+        d.insert("channel".to_string(), self.Channel.to_json());
+        d.insert("text".to_string(), self.Text.to_json());
+        Json::Object(d)
+    }
+}
+
+
 fn main() {
     let ws_uri = Connection::handshake();
     println!("[Debug] ws_uri: {}", ws_uri);
@@ -41,6 +61,7 @@ fn main() {
     match response.validate() {
         Ok(()) => {
           println!("{}", MSG_WELCOME);
+          Connection::message(); // @TODO API placeholder
         },
         Err(e) => { println!("Error {:?}", e); }
     }
@@ -55,13 +76,30 @@ fn main() {
         loop {
             let message = match rx.recv() {
                 Ok(message) => {
-                    println!("Message: {:?}", message);
+                    // let tmp = from_utf8(message.payload).unwrap();
+                    // let msg_json = Json::from_str(tmp).unwrap();
+                    // let msg_object = msg_json.as_object().unwrap();
+                    println!("Send Loop receives message: {:?}", message);
+
+                    // let test_response = Msg {
+                    //     Id: 1234,
+                    //     Type: "message".to_string(),
+                    //     Channel: "D0TABF474".to_string(),
+                    //     Text: "Sup dawg".to_string(),
+                    // };
+
+                    // let tr = test_response.to_json();
+
+                    // println!("[Log] {:?}", tr);
+                    //
                 },
                 Err(e) => {
-                    println!("Send Loop: {:?}", e);
+                    println!("Send Loop Err: {:?}", e);
                     return;
                 },
             };
+
+            // @TODO need to match on opcode to close connection
             // match message.opcode {
             //     Type::Close => {
             //         let _ =
@@ -70,7 +108,7 @@ fn main() {
             //     },
             //     _ => (),
             // }
-            // // Send the message
+
             // match sender.send_message(&message) {
             //     Ok(()) => (),
             //     Err(e) => {
@@ -81,6 +119,7 @@ fn main() {
             // }
         }
     });
+
 
     let receive_loop = thread::spawn(move || {
         for message in receiver.incoming_messages() {
@@ -102,9 +141,15 @@ fn main() {
                         Some(m) => {
                             match m.as_string() {
                                 Some(s) => {
-                                  // Check sender here
-                                  tx_1.send(Message::text("got it"));
-                                  println!("Slack Message: {:?}", s);
+                                    // @TODO should send the whole Message and let it be parsed in
+                                    // the other thread
+                                    // tx_1.send(Message::text(s.to_owned()));
+
+                                    let msg = Message::text("abc".to_string());
+                                    println!("[Log] message::text: {:?}", msg);
+                                    sender.send_message(&msg);
+
+                                    println!("Slack Message: {:?}", s);
                                 }
                                 None => println!("[Debug] Text Message: None"),
                             }
@@ -114,15 +159,15 @@ fn main() {
                     }
                 },
                 Type::Close => {
-                  let _ = tx_1.send(Message::close());
-                  return;
+                    let _ = tx_1.send(Message::close());
+                    return;
                 }
                 Type::Ping => match tx_1.send(Message::pong(message.payload)) {
-                  Ok(()) => (),
-                  Err(e) => {
-                    println!("Receive Loop: {:?}", e);
-                    return;
-                  }
+                    Ok(()) => (),
+                    Err(e) => {
+                        println!("Receive Loop: {:?}", e);
+                        return;
+                    }
                 },
               _ => println!("Receive Loop: {:?}", message),
             }
