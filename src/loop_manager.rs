@@ -25,9 +25,8 @@ impl LoopManager {
             let message = match formatted_command {
                 "\\q" => {
                     println!("Disconnecting!");
-                    // @TODO send actual Message::close() or similar to tx
-                    Message::text("closing".to_owned())
-
+                    tx.send(Message::close());
+                    return;
                 },
                 _ => {
                     self.print_prompt();

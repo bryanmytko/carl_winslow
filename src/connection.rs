@@ -33,7 +33,7 @@ impl Connection {
         Url::parse(ws_url_string).unwrap()
     }
 
-    pub fn message() {
+    pub fn greeting() {
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());

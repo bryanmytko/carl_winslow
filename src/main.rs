@@ -61,12 +61,12 @@ fn main() {
     match response.validate() {
         Ok(()) => {
           println!("{}", MSG_WELCOME);
-          Connection::message(); // @TODO API placeholder
+          Connection::greeting(); // @TODO API placeholder
         },
         Err(e) => { println!("Error {:?}", e); }
     }
 
-    // @TODO Channels should be extracted from main
+    // @TODO Bring threads back to main; looper is not necessary.
 
     let (mut sender, mut receiver) = response.begin().split();
     let (tx, rx) = mpsc::channel();
@@ -76,22 +76,7 @@ fn main() {
         loop {
             let message = match rx.recv() {
                 Ok(message) => {
-                    // let tmp = from_utf8(message.payload).unwrap();
-                    // let msg_json = Json::from_str(tmp).unwrap();
-                    // let msg_object = msg_json.as_object().unwrap();
                     println!("Send Loop receives message: {:?}", message);
-
-                    // let test_response = Msg {
-                    //     Id: 1234,
-                    //     Type: "message".to_string(),
-                    //     Channel: "D0TABF474".to_string(),
-                    //     Text: "Sup dawg".to_string(),
-                    // };
-
-                    // let tr = test_response.to_json();
-
-                    // println!("[Log] {:?}", tr);
-                    //
                 },
                 Err(e) => {
                     println!("Send Loop Err: {:?}", e);
@@ -141,14 +126,7 @@ fn main() {
                         Some(m) => {
                             match m.as_string() {
                                 Some(s) => {
-                                    // @TODO should send the whole Message and let it be parsed in
-                                    // the other thread
-                                    // tx_1.send(Message::text(s.to_owned()));
-
-                                    let msg = Message::text("abc".to_string());
-                                    println!("[Log] message::text: {:?}", msg);
-                                    sender.send_message(&msg);
-
+                                    // @TODO Responses should get sent to send thread
                                     println!("Slack Message: {:?}", s);
                                 }
                                 None => println!("[Debug] Text Message: None"),
@@ -177,11 +155,11 @@ fn main() {
     let loop_manager = LoopManager::new();
     loop_manager.main(tx);
 
-    // @TODO Child threads need to exit
     println!("Waiting for child threads to exit");
 
-    let _ = send_loop.join();
-    let _ = receive_loop.join();
+    // @TODO Child threads not actually exiting? Quit command hangs.
+    send_loop.join();
+    receive_loop.join();
 
     println!("Exited");
 }
