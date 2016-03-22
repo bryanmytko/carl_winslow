@@ -1,14 +1,56 @@
 use std::io::Read;
+use std::io::Write;
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
+
+use websocket::message::Type;
 use websocket::client::request::Url;
+use websocket::result::WebSocketResult;
+use websocket::{Client as WSClient, Message};
+use websocket::stream::WebSocketStream;
+use websocket::DataFrame;
+use websocket::client::response::Response;
+
+use websocket::sender::Sender;
+use websocket::receiver::Receiver;
 
 use serialize::json::Json;
 
-pub struct Connection;
+pub struct Connection {
+    // client: WSClient<DataFrame, Sender<WebSocketStream>, Receiver<WebSocketStream>>,
+    pub sender: Sender<WebSocketStream>,
+    pub receiver: Receiver<WebSocketStream>,
+}
+
+const MSG_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
+    Enter a command:\n(type \\q to quit)\n ";
+
+const MSG_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
+    your API credentials.\n";
 
 impl Connection {
-    pub fn handshake() -> Url {
+    // pub fn new<R: Read, W: Write>() -> WSClient<DataFrame, Sender<WebSocketStream>, Receiver<WebSocketStream>> {
+    pub fn new() -> Connection {
+        let ws_uri = Connection::handshake();
+        let request = WSClient::connect(ws_uri).unwrap();
+        let response = request.send().unwrap();
+
+        match response.validate() {
+            Ok(()) => {
+              println!("{}", MSG_WELCOME);
+              Connection::greeting();
+            },
+            Err(e) => panic!(MSG_CONNECT_ERROR),
+        };
+
+        let (sender, receiver) = response.begin().split();
+        Connection {
+            sender: sender,
+            receiver: receiver
+        }
+    }
+
+    fn handshake() -> Url {
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());
@@ -33,7 +75,7 @@ impl Connection {
         Url::parse(ws_url_string).unwrap()
     }
 
-    pub fn greeting() {
+    fn greeting() {
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());
