@@ -6,7 +6,6 @@ extern crate websocket;
 extern crate rustc_serialize as serialize;
 
 mod connection;
-mod loop_manager;
 
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
@@ -28,24 +27,6 @@ use connection::Connection;
 
 const MSG_WELCOME: &'static str = "\nConnected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
-
-struct Msg {
-    Id: u32,
-    Type: String,
-    Channel: String,
-    Text: String,
-}
-
-impl ToJson for Msg {
-    fn to_json(&self) -> Json {
-        let mut d = BTreeMap::new();
-        d.insert("id".to_string(), self.Id.to_json());
-        d.insert("type".to_string(), self.Type.to_json());
-        d.insert("channel".to_string(), self.Channel.to_json());
-        d.insert("text".to_string(), self.Text.to_json());
-        Json::Object(d)
-    }
-}
 
 fn main() {
     let ws_uri = Connection::handshake();
@@ -80,27 +61,15 @@ fn main() {
                 },
             };
 
-            // @TODO need to match on opcode to close connection
+            // @TODO match opcode for disconnect
             // match message.opcode {
-            //     Type::Close => {
-            //         let _ =
-            //             sender.send_message(&message);
-            //             return;
-            //     },
+            //     Type::Close => sender.send_message(&Message::close()),
             //     _ => (),
-            // }
-
-            // match sender.send_message(&message) {
-            //     Ok(()) => (),
-            //     Err(e) => {
-            //         println!("Send Loop: {:?}", e);
-            //         let _ = sender.send_message(&Message::close());
-            //         return;
-            //     }
-            // }
+            // };
         }
     });
 
+    /* Receives messages via WS */
     let receive_loop = thread::spawn(move || {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
@@ -111,6 +80,7 @@ fn main() {
                     return;
                 }
             };
+
             match message.opcode {
                 Type::Text => {
                     let tmp = from_utf8(&*message.payload).unwrap();
@@ -121,14 +91,12 @@ fn main() {
                         Some(m) => {
                             match m.as_string() {
                                 Some(s) => {
-                                    // @TODO Responses should get sent to send thread
                                     println!("Slack Message: {:?}", s);
                                 }
                                 None => println!("[Debug] Text Message: None"),
                             }
                         },
-                        // @TODO Do we even care about None here?
-                        None => println!("Non-text message"),
+                        None => (),
                     }
                 },
                 Type::Close => {
