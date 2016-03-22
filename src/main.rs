@@ -5,8 +5,6 @@ extern crate hyper;
 extern crate websocket;
 extern crate rustc_serialize as serialize;
 
-mod connection;
-
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
 
@@ -25,27 +23,15 @@ use websocket::{Client as WSClient, Message, Sender, Receiver};
 
 use connection::Connection;
 
-const MSG_WELCOME: &'static str = "\nConnected! Welcome to Carl Winslow Bot. \
-    Enter a command:\n(type \\q to quit)\n ";
+mod connection;
+mod prompt;
+
 
 fn main() {
-    let ws_uri = Connection::handshake();
-    println!("[Debug] ws_uri: {}", ws_uri);
+    let connection = Connection::new();
+    let mut sender = connection.sender;
+    let mut receiver = connection.receiver;
 
-    let request = WSClient::connect(ws_uri).unwrap();
-    let response = request.send().unwrap();
-
-    response.validate().unwrap();
-
-    match response.validate() {
-        Ok(()) => {
-          println!("{}", MSG_WELCOME);
-          Connection::greeting(); // @TODO API placeholder
-        },
-        Err(e) => { println!("Error {:?}", e); }
-    }
-
-    let (mut sender, mut receiver) = response.begin().split();
     let (tx, rx) = mpsc::channel();
     let tx_1 = tx.clone();
 
@@ -115,7 +101,7 @@ fn main() {
         }
     });
 
-    print_prompt();
+    prompt::display();
 
     loop {
         let mut command = String::new();
@@ -129,7 +115,7 @@ fn main() {
                 return;
             },
             _ => {
-                print_prompt();
+                prompt::display();
                 Message::text(formatted_command.to_owned())
             }
         };
@@ -143,17 +129,8 @@ fn main() {
         }
     }
 
-    println!("Waiting for child threads to exit");
-
-    // @TODO Child threads not actually exiting? Quit command hangs.
+    println!("Waiting for child threads to exit...");
     send_loop.join();
     receive_loop.join();
-
-    println!("Exited");
-
-    fn print_prompt(){
-        io::stdout().flush();
-        io::stdout().write(b"> ");
-        io::stdout().flush();
-    }
+    println!("Exited Successfully.");
 }
