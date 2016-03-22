@@ -5,27 +5,26 @@ extern crate hyper;
 extern crate websocket;
 extern crate rustc_serialize as serialize;
 
-use hyper::Client;
-use hyper::header::{Headers, ContentType};
-
-use websocket::client::request::Url;
-use websocket::{Client as WSClient, Message, Sender, Receiver};
-use websocket::message::Type;
-
-use std::io::stdin;
-use std::io::{self, Write};
-use std::collections::BTreeMap;
-
-use serialize::json::{self, Json, ToJson};
-use std::thread;
-use std::sync::mpsc;
-use std::str::from_utf8;
-
 mod connection;
 mod loop_manager;
 
+use hyper::Client;
+use hyper::header::{Headers, ContentType};
+
+use serialize::json::{self, Json, ToJson};
+
+use std::collections::BTreeMap;
+use std::io::stdin;
+use std::io::{self, Write};
+use std::str::from_utf8;
+use std::sync::mpsc;
+use std::thread;
+
+use websocket::client::request::Url;
+use websocket::message::Type;
+use websocket::{Client as WSClient, Message, Sender, Receiver};
+
 use connection::Connection;
-use loop_manager::LoopManager;
 
 const MSG_WELCOME: &'static str = "\nConnected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
@@ -48,7 +47,6 @@ impl ToJson for Msg {
     }
 }
 
-
 fn main() {
     let ws_uri = Connection::handshake();
     println!("[Debug] ws_uri: {}", ws_uri);
@@ -65,8 +63,6 @@ fn main() {
         },
         Err(e) => { println!("Error {:?}", e); }
     }
-
-    // @TODO Bring threads back to main; looper is not necessary.
 
     let (mut sender, mut receiver) = response.begin().split();
     let (tx, rx) = mpsc::channel();
@@ -104,7 +100,6 @@ fn main() {
             // }
         }
     });
-
 
     let receive_loop = thread::spawn(move || {
         for message in receiver.incoming_messages() {
@@ -152,8 +147,33 @@ fn main() {
         }
     });
 
-    let loop_manager = LoopManager::new();
-    loop_manager.main(tx);
+    print_prompt();
+
+    loop {
+        let mut command = String::new();
+        stdin().read_line(&mut command).unwrap();
+        let formatted_command = command.trim();
+
+        let message = match formatted_command {
+            "\\q" => {
+                println!("Disconnecting!");
+                tx.send(Message::close());
+                return;
+            },
+            _ => {
+                print_prompt();
+                Message::text(formatted_command.to_owned())
+            }
+        };
+
+        match tx.send(message) {
+            Ok(()) => (),
+            Err(e) => {
+                println!("Main Loop: {:?}", e); // debug
+                break;
+            }
+        }
+    }
 
     println!("Waiting for child threads to exit");
 
@@ -162,4 +182,10 @@ fn main() {
     receive_loop.join();
 
     println!("Exited");
+
+    fn print_prompt(){
+        io::stdout().flush();
+        io::stdout().write(b"> ");
+        io::stdout().flush();
+    }
 }
