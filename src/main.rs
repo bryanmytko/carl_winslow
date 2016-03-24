@@ -69,21 +69,19 @@ fn main() {
 
             match message.opcode {
                 Type::Text => {
-                    let tmp = from_utf8(&*message.payload).unwrap();
-                    let msg_json = Json::from_str(tmp).unwrap();
-                    let msg_object = msg_json.as_object().unwrap();
+                    let payload = from_utf8(&*message.payload)
+                        .expect("Invalid payload: {}");
 
-                    match msg_object.get("text") {
-                        Some(m) => {
-                            match m.as_string() {
-                                Some(s) => {
-                                    println!("Slack Message: {:?}", s);
-                                }
-                                None => println!("[Debug] Text Message: None"),
-                            }
-                        },
-                        None => (),
-                    }
+                    let message = Json::from_str(payload)
+                        .expect("Unable to parse JSON: {}");
+
+                    let message_string = message.as_object().and_then(|obj| {
+                        obj.get("text").and_then(|json| {
+                            json.as_string()
+                        })
+                    });
+
+                    println!("Slack Message: {:?}", message_string);
                 },
                 Type::Close => {
                     let _ = tx_1.send(Message::close());
