@@ -17,7 +17,6 @@ use websocket::receiver::Receiver;
 use serialize::json::Json;
 
 pub struct Connection {
-    // client: WSClient<DataFrame, Sender<WebSocketStream>, Receiver<WebSocketStream>>,
     pub sender: Sender<WebSocketStream>,
     pub receiver: Receiver<WebSocketStream>,
 }
@@ -28,19 +27,22 @@ const MSG_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
 const MSG_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
     your API credentials.\n";
 
+const MSG_CONNECT_INVALID: &'static str = "RTM response not validated. Check \
+    your API credentials.\n";
+
 impl Connection {
     // pub fn new<R: Read, W: Write>() -> WSClient<DataFrame, Sender<WebSocketStream>, Receiver<WebSocketStream>> {
     pub fn new() -> Connection {
         let ws_uri = Connection::handshake();
-        let request = WSClient::connect(ws_uri).unwrap();
-        let response = request.send().unwrap();
+        let request = WSClient::connect(ws_uri).expect(MSG_CONNECT_ERROR);
+        let response = request.send().expect(MSG_CONNECT_ERROR);
 
         match response.validate() {
             Ok(()) => {
               println!("{}", MSG_WELCOME);
               Connection::greeting();
             },
-            Err(e) => panic!(MSG_CONNECT_ERROR),
+            Err(e) => panic!(MSG_CONNECT_INVALID)
         };
 
         let (sender, receiver) = response.begin().split();
