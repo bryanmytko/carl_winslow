@@ -102,9 +102,10 @@ fn main() {
     prompt::display();
 
     loop {
-        let mut command = String::new();
-        stdin().read_line(&mut command).unwrap();
-        let formatted_command = command.trim();
+        let mut buffer = String::new();
+        stdin().read_line(&mut buffer)
+            .expect("Could not understand that command.");
+        let formatted_command = buffer.trim();
 
         let message = match formatted_command {
             "\\q" => {
