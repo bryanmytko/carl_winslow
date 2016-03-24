@@ -4,6 +4,7 @@ extern crate dotenv;
 extern crate hyper;
 extern crate websocket;
 extern crate rustc_serialize as serialize;
+extern crate url;
 
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
@@ -23,9 +24,9 @@ use websocket::{Client as WSClient, Message, Sender, Receiver};
 
 use connection::Connection;
 
+mod api;
 mod connection;
 mod prompt;
-
 
 fn main() {
     let connection = Connection::new();
@@ -77,7 +78,15 @@ fn main() {
 
                     let parsed_message = message.as_object().and_then(|obj| {
                         match obj.get("text") {
-                            Some(v) => v.as_string(),
+                            /* @TODO Extract this entire hack */
+                            Some(v) => {
+                                let v = v.as_string();
+                                match v.unwrap() { // @TODO gross
+                                    "hi" => api::chatPostMessage::send(),
+                                    _ => ()
+                                };
+                                return v;
+                            },
                             None => Some("Text opcode with no text value.")
                         }
                     }).unwrap();
