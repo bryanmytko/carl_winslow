@@ -21,31 +21,34 @@ pub struct Connection {
     pub receiver: Receiver<WebSocketStream>,
 }
 
-const MSG_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
+const ERR_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
 
-const MSG_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
+const ERR_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
     your API credentials.\n";
 
-const MSG_CONNECT_INVALID: &'static str = "RTM response not validated. Check \
+const ERR_CONNECT_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
+
+const ERR_RTM_CONNECTION: &'static str = "Could not reach Slack RTM API. \
+    Check connection.\n";
 
 impl Connection {
-    // pub fn new<R: Read, W: Write>() -> WSClient<DataFrame, Sender<WebSocketStream>, Receiver<WebSocketStream>> {
     pub fn new() -> Connection {
         let ws_uri = Connection::handshake();
-        let request = WSClient::connect(ws_uri).expect(MSG_CONNECT_ERROR);
-        let response = request.send().expect(MSG_CONNECT_ERROR);
+        let request = WSClient::connect(ws_uri).expect(ERR_CONNECT_ERROR);
+        let response = request.send().expect(ERR_CONNECT_ERROR);
 
         match response.validate() {
-            Ok(()) => {
-              println!("{}", MSG_WELCOME);
+            Ok(r) => {
+              println!("{}", ERR_WELCOME);
               Connection::greeting();
             },
-            Err(e) => panic!(MSG_CONNECT_INVALID)
+            Err(e) => panic!(ERR_CONNECT_INVALID)
         };
 
         let (sender, receiver) = response.begin().split();
+
         Connection {
             sender: sender,
             receiver: receiver
@@ -64,17 +67,22 @@ impl Connection {
             .body(request_string)
             .headers(headers)
             .send()
-            .unwrap();
+            .expect(ERR_RTM_CONNECTION);
 
-        let mut handshake_response = String::new();
-        handshake_request.read_to_string(&mut handshake_response).unwrap();
+        let mut buffer = String::new();
+        handshake_request.read_to_string(&mut buffer)
+            .expect("Error reading response.");
 
-        let json_response = Json::from_str(&handshake_response).unwrap();
-        let json_response_object = json_response.as_object().unwrap();
-        let ws_url = json_response_object.get("url").unwrap();
-        let ws_url_string = ws_url.as_string().unwrap();
+        let response = Json::from_str(&buffer)
+            .expect("Unable to parse JSON: {}");
 
-        Url::parse(ws_url_string).unwrap()
+        let response_string = response.as_object().and_then(|obj| {
+            obj.get("url").and_then(|json| {
+                json.as_string()
+            })
+        }).expect("Key: 'url' not found");
+
+        Url::parse(response_string).expect("Invalid URL.")
     }
 
     fn greeting() {
