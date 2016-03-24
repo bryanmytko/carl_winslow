@@ -3,8 +3,10 @@ use std::io::Write;
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
 
+use url::{Url, ParseResult, ParseError};
+
 use websocket::message::Type;
-use websocket::client::request::Url;
+use websocket::client::request::{Url as WSUrl};
 use websocket::result::WebSocketResult;
 use websocket::{Client as WSClient, Message};
 use websocket::stream::WebSocketStream;
@@ -15,36 +17,41 @@ use websocket::sender::Sender;
 use websocket::receiver::Receiver;
 
 use serialize::json::Json;
+use serialize::json::{ParserError};
+
+use std::io::Error;
 
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
     pub receiver: Receiver<WebSocketStream>,
 }
 
-const ERR_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
+const MSG_WELCOME: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
 
 const ERR_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
     your API credentials.\n";
 
-const ERR_CONNECT_INVALID: &'static str = "RTM response not validated. Check \
+const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
 
 const ERR_RTM_CONNECTION: &'static str = "Could not reach Slack RTM API. \
     Check connection.\n";
 
+const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` not found.\n";
+
 impl Connection {
     pub fn new() -> Connection {
-        let ws_uri = Connection::handshake();
-        let request = WSClient::connect(ws_uri).expect(ERR_CONNECT_ERROR);
-        let response = request.send().expect(ERR_CONNECT_ERROR);
+        let ws_uri = Connection::handshake().expect(ERR_RTM_INVALID);
+        let request = WSClient::connect(ws_uri).expect(ERR_RTM_CONNECTION);
+        let response = request.send().expect(ERR_RTM_CONNECTION);
 
         match response.validate() {
             Ok(r) => {
-              println!("{}", ERR_WELCOME);
+              println!("{}", MSG_WELCOME);
               Connection::greeting();
             },
-            Err(e) => panic!(ERR_CONNECT_INVALID)
+            Err(e) => panic!(ERR_RTM_INVALID)
         };
 
         let (sender, receiver) = response.begin().split();
@@ -55,7 +62,7 @@ impl Connection {
         }
     }
 
-    fn handshake() -> Url {
+    fn handshake() -> Result<WSUrl, ParseError> {
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());
@@ -71,7 +78,7 @@ impl Connection {
 
         let mut buffer = String::new();
         handshake_request.read_to_string(&mut buffer)
-            .expect("Error reading response.");
+            .expect("");
 
         let response = Json::from_str(&buffer)
             .expect("Unable to parse JSON: {}");
@@ -80,12 +87,16 @@ impl Connection {
             obj.get("url").and_then(|json| {
                 json.as_string()
             })
-        }).expect("Key: 'url' not found");
+        }).expect(ERR_INVALID_JSON_URL);
 
-        Url::parse(response_string).expect("Invalid URL.")
+        WSUrl::parse(response_string)
     }
 
     fn greeting() {
+        /* ================================================================================
+        / @TODO This whole method needs to be removed once the API wrapper is implemented
+        /=================================================================================*/
+
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());
@@ -101,6 +112,7 @@ impl Connection {
             "&icon_url=https%3A%2F%2Favatars.slack-edge.com%2F2016-03-17%2F27345813169_aa6498c84afb262aa269_original.jpg"
             );
 
+        // Gross.
         let mut message_request =
             client.post("https://slack.com/api/chat.postMessage")
             .body(request_string)
