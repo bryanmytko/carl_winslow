@@ -75,18 +75,19 @@ fn main() {
                     let message = Json::from_str(payload)
                         .expect("Unable to parse JSON: {}");
 
-                    let message_string = message.as_object().and_then(|obj| {
-                        obj.get("text").and_then(|json| {
-                            json.as_string()
-                        })
-                    });
+                    let parsed_message = message.as_object().and_then(|obj| {
+                        match obj.get("text") {
+                            Some(v) => v.as_string(),
+                            None => Some("Text opcode with no text value.")
+                        }
+                    }).unwrap();
 
-                    println!("Slack Message: {:?}", message_string);
+                    println!("Slack message: {}", parsed_message);
                 },
                 Type::Close => {
                     let _ = tx_1.send(Message::close());
                     return;
-                }
+                },
                 Type::Ping => match tx_1.send(Message::pong(message.payload)) {
                     Ok(()) => (),
                     Err(e) => {
@@ -94,7 +95,7 @@ fn main() {
                         return;
                     }
                 },
-              _ => println!("Receive Loop: {:?}", message),
+                _ => println!("Receive Loop: {:?}", message),
             }
         }
     });
