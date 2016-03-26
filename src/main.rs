@@ -60,7 +60,7 @@ fn main() {
     let receive_loop = thread::spawn(move || {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
-                Ok(m) => { println!("Message received: {:?}", m); m },
+                Ok(m) => { m },
                 Err(e) => {
                     println!("Receive Loop: {:?}", e);
                     let _ = tx_1.send(Message::close());
