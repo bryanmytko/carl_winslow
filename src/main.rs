@@ -82,7 +82,7 @@ fn main() {
                             Some(v) => {
                                 let v = v.as_string();
                                 match v.unwrap() { // @TODO gross
-                                    "hi" => api::chatPostMessage::send(),
+                                    "hi" => api::chatPostMessage::send("Oh, Hi!"),
                                     _ => ()
                                 };
                                 return v;
