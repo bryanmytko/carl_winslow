@@ -1,24 +1,27 @@
-pub fn send() {
-        let client = ::hyper::Client::new();
-        let mut headers = ::hyper::header::Headers::new();
-        headers.set(::hyper::header::ContentType::form_url_encoded());
+pub fn send(message: &str) {
+    const METHOD: &'static str = "chat.postMessage";
 
-        // @TODO Generalize greeting -- also, pull this data off the bot data.
-        // I think it's available during the handshake.
-        let request_string = concat!(
-            "token=",
-            dotenv!("APIKEY"),
-            "&channel=D0TABF474", // Set constant?
-            "&text=Over%20and%20out.",
-            "&username=carl_winslow",
-            "&icon_url=https%3A%2F%2Favatars.slack-edge.com%2F2016-03-17%2F27345813169_aa6498c84afb262aa269_original.jpg"
-            );
+    let mut headers = ::api::set_headers();
+    let client = ::api::set_client(&mut headers);
 
-        // Gross.
-        let mut message_request =
-            client.post("https://slack.com/api/chat.postMessage")
-            .body(request_string)
-            .headers(headers)
-            .send()
-            .unwrap();
+    // @TODO This stuff is just for testing. Pull actual data off the bot connection.
+    let mut request_string = String::new();
+    request_string.push_str("token=");
+    request_string.push_str(dotenv!("APIKEY"));
+    request_string.push_str("&channel=D0TABF474");
+    request_string.push_str("&text=");
+    request_string.push_str(message);
+    request_string.push_str("&username=carl_winslow");
+    request_string.push_str("&icon_url=");
+    request_string.push_str(::api::BOT_IMG);
+
+    let mut request_uri = String::from(::api::API_URI);
+    request_uri.push_str(METHOD);
+
+    let mut message_request =
+        client.post(request_uri.as_str())
+        .body(&request_string)
+        .headers(headers)
+        .send()
+        .unwrap();
 }
