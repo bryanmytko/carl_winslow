@@ -6,21 +6,15 @@ extern crate websocket;
 extern crate rustc_serialize as serialize;
 extern crate url;
 
-use hyper::Client;
-use hyper::header::{Headers, ContentType};
+use serialize::json::{Json};
 
-use serialize::json::{self, Json, ToJson};
-
-use std::collections::BTreeMap;
 use std::io::stdin;
-use std::io::{self, Write};
 use std::str::from_utf8;
 use std::sync::mpsc;
 use std::thread;
 
-use websocket::client::request::Url;
 use websocket::message::Type;
-use websocket::{Client as WSClient, Message, Sender, Receiver};
+use websocket::{Message, Receiver};
 
 use connection::Connection;
 
@@ -78,11 +72,11 @@ fn main() {
 
                     let parsed_message = message.as_object().and_then(|obj| {
                         match obj.get("text") {
-                            /* @TODO Extract this entire hack */
+                            /* @TODO Extract this entire mess */
                             Some(v) => {
                                 let v = v.as_string();
-                                match v.unwrap() { // @TODO gross
-                                    "hi" => api::chatPostMessage::send("Oh, Hi!"),
+                                match v.unwrap() { // @TODO fix, gross
+                                    "hi" => { api::chat_post_message::send("Oh, Hi!"); },
                                     _ => ()
                                 };
                                 return v;
@@ -117,6 +111,8 @@ fn main() {
             .expect("Could not understand that command.");
         let formatted_command = buffer.trim();
 
+        /* Eventually define server side commands here */
+        /* @TODO note \q works but breaking the loop exits w/o the messages */
         let message = match formatted_command {
             "\\q" => {
                 println!("Disconnecting!");

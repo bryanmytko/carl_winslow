@@ -22,7 +22,7 @@ use serialize::json::{ParserError};
 use std::io::Error;
 use std::convert;
 
-use api::chatPostMessage;
+use api::chat_post_message;
 
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
@@ -88,7 +88,7 @@ impl Connection {
         match response.validate() {
             Ok(r) => {
                 println!("{}", MSG_WELCOME);
-                chatPostMessage::send(MSG_WELCOME);
+                chat_post_message::send(MSG_WELCOME);
             },
             Err(e) => panic!(ERR_RTM_INVALID)
         };
