@@ -135,7 +135,7 @@ fn main() {
     }
 
     println!("Waiting for child threads to exit...");
-    send_loop.join();
-    receive_loop.join();
+    let _ = send_loop.join();
+    let _ = receive_loop.join();
     println!("Exited Successfully.");
 }
