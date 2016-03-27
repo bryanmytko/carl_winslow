@@ -1,4 +1,4 @@
-pub fn send(message: &str) -> Result<::hyper::client::Response, ::hyper::error::Error> {
+pub fn send(message: &str) {
     const METHOD: &'static str = "chat.postMessage";
 
     let mut headers = ::api::set_headers();
@@ -21,5 +21,5 @@ pub fn send(message: &str) -> Result<::hyper::client::Response, ::hyper::error::
     client.post(request_uri.as_str())
         .body(&request_string)
         .headers(headers)
-        .send()
+        .send();
 }
