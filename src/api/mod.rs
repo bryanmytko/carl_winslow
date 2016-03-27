@@ -1,7 +1,7 @@
 pub use hyper::Client;
 pub use hyper::header::{Headers, ContentType};
 
-pub mod chatPostMessage;
+pub mod chat_post_message;
 
 const API_URI: &'static str = "https://slack.com/api/";
 // @TODO FOR TESTING. need to pull this off the request
