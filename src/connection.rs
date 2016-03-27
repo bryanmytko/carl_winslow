@@ -1,26 +1,17 @@
 use std::io::Read;
-use std::io::Write;
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
 
-use url::{Url, ParseResult, ParseError};
+use url::{ParseError};
 
-use websocket::message::Type;
 use websocket::client::request::{Url as WSUrl};
-use websocket::result::WebSocketResult;
-use websocket::{Client as WSClient, Message};
+use websocket::{Client as WSClient};
 use websocket::stream::WebSocketStream;
-use websocket::DataFrame;
-use websocket::client::response::Response;
 
 use websocket::sender::Sender;
 use websocket::receiver::Receiver;
 
 use serialize::json::Json;
-use serialize::json::{ParserError};
-
-use std::io::Error;
-use std::convert;
 
 use api::chat_post_message;
 
@@ -34,9 +25,6 @@ const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
 
 const MSG_WELCOME: &'static str = "Carl Winslow is online. What can I help you with?";
 
-const ERR_CONNECT_ERROR: &'static str = "Could not connect to Slack. Check \
-    your API credentials.\n";
-
 const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
 
@@ -45,40 +33,6 @@ const ERR_RTM_CONNECTION: &'static str = "Could not reach Slack RTM API. \
 
 const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` not found.\n";
 
-// #[derive(Debug)]
-// enum CliError {
-//     Io(io::Error),
-//     Parse(num::ParseIntError),
-//     Url(io::Error),
-// }
-//
-// impl fmt::Display for CliError {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match *self {
-//             CliError::Io(ref err) => write!(f, "IO error: {}", err),
-//             CliError::Parse(ref err) => write!(f, "Parse error: {}", err),
-//         }
-//     }
-// }
-//
-// impl error::Error for CliError {
-//     fn description(&self) -> &str {
-//         // Both underlying errors already impl `Error`, so we defer to their
-//         // implementations.
-//         match *self {
-//             CliError::Io(ref err) => err.description(),
-//             CliError::Parse(ref err) => err.description(),
-//         }
-//     }
-//     fn cause(&self) -> Option<&error::Error> {
-//         match *self {
-//             CliError::Io(ref err) => Some(err),
-//             CliError::Parse(ref err) => Some(err),
-//         }
-//     }
-// }
-
-
 impl Connection {
     pub fn new() -> Connection {
         let ws_uri = Connection::handshake().expect(ERR_RTM_INVALID);
@@ -86,11 +40,11 @@ impl Connection {
         let response = request.send().expect(ERR_RTM_CONNECTION);
 
         match response.validate() {
-            Ok(r) => {
-                println!("{}", MSG_WELCOME);
+            Ok(_) => {
+                println!("{}", MSG_ONLINE);
                 chat_post_message::send(MSG_WELCOME);
             },
-            Err(e) => panic!(ERR_RTM_INVALID)
+            Err(e) => panic!(e)
         };
 
         let (sender, receiver) = response.begin().split();
