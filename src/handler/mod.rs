@@ -14,7 +14,7 @@ pub fn push(message: &Message){
 
     match json_object {
         Some(c) => {
-            let cmd = c.as_string().unwrap();
+            let cmd = c.as_string().unwrap_or("");
             custom_handler::send(cmd);
         },
         None => ()
@@ -23,7 +23,7 @@ pub fn push(message: &Message){
 
 fn parse_payload(message: &Message) -> Json {
     let payload = from_utf8(&message.payload)
-        .expect("Invalid payload: {}"); // @TODO
+        .expect("Invalid payload: {}");
 
     Json::from_str(payload).expect("Unable to parse JSON: {}")
 }
