@@ -5,3 +5,13 @@ pub fn display(){
     io::stdout().write(b"> ");
     io::stdout().flush();
 }
+
+pub fn flush(){
+    print!("\r");
+}
+
+pub fn output(string: &str) {
+    flush();
+    println!("{}", string);
+    display();
+}
