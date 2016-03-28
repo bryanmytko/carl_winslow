@@ -38,7 +38,7 @@ fn main() {
         loop {
             let message: Message = match rx.recv() {
                 Ok(message) => message,
-                Err(e) => { println!("Message: Unknown Error."); return } // @TODO
+                Err(e) => { println!("{}", e); continue; }
             };
 
             match message.opcode {
