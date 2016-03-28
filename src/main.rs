@@ -17,7 +17,7 @@ use std::sync::mpsc;
 use std::thread;
 
 use websocket::message::Type;
-use websocket::{Message, Receiver};
+use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
 
@@ -38,14 +38,17 @@ fn main() {
         loop {
             let message: Message = match rx.recv() {
                 Ok(message) => message,
-                Err(e) => { println!("asdf"); return }
+                Err(e) => { println!("Message: Unknown Error."); return } // @TODO
             };
 
             match message.opcode {
                 Type::Text => handler::push(&message),
-                Type::Ping => println!("Ping"),
+                Type::Pong => {
+                    sender.send_message(&Message::pong(message.payload));
+                    prompt::output("Pong!");
+                },
                 Type::Close => return,
-                _ => println!("asdfasdf")
+                _ => println!("Unknown opcode: {:?}", message.opcode)
             }
         }
     });
@@ -62,7 +65,8 @@ fn main() {
                     let _ = tx_1.send(message);
                 },
                 Type::Ping => {
-                    let _ = tx_1.send(Message::pong(message.payload));
+                    prompt::output("Ping!");
+                    let _ = { tx_1.send(Message::pong(message.payload)); };
                 },
                 Type::Close => {
                     let _ = tx_1.send(Message::close());
