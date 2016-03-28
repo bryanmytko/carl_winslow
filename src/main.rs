@@ -1,7 +1,10 @@
 #![feature(plugin)]
 #![plugin(dotenv_macros)]
+#![plugin(regex_macros)]
+
 extern crate dotenv;
 extern crate hyper;
+extern crate regex;
 extern crate rustc_serialize as serialize;
 extern crate url;
 extern crate websocket;
@@ -20,29 +23,8 @@ use connection::Connection;
 
 mod api;
 mod connection;
+mod handler;
 mod prompt;
-
-// @TODO Move this
-fn text_command(message: &Message){
-    let payload = from_utf8(&*message.payload)
-        .expect("Invalid payload: {}"); // @TODO
-
-    let json_message = Json::from_str(payload)
-        .expect("Unable to parse JSON: {}"); // @TODO
-
-    let json_object = json_message.as_object().expect(""); // @TODO
-
-    match json_object.get("text") {
-        Some(command) => {
-            let command = command.as_string().expect("asdfa"); // @TODO
-            match command {
-                "hi" => { api::chat_post_message::send("Hi Carl"); },
-                _ => ()
-            };
-        },
-        None => ()
-    }
-}
 
 fn main() {
     let connection = Connection::new();
@@ -60,7 +42,7 @@ fn main() {
             };
 
             match message.opcode {
-                Type::Text => text_command(&message),
+                Type::Text => handler::push(&message),
                 Type::Ping => println!("Ping"),
                 Type::Close => return,
                 _ => println!("asdfasdf")
@@ -102,6 +84,7 @@ fn main() {
 
         /* Eventually define server side commands here */
         /* @TODO note \q works but breaking the loop exits w/o the messages */
+        /* Extract to admin module */
         let message = match formatted_command {
             "\\q" => {
                 println!("Disconnecting!");
