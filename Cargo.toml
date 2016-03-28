@@ -4,9 +4,11 @@ version = "0.1.0"
 authors = ["Bryan Mytko <bryanmytko@gmail.com>"]
 
 [dependencies]
-hyper = "*"
 dotenv = "*"
 dotenv_macros = "*"
+hyper = "*"
+regex = "*"
+regex_macros = "*"
 rustc-serialize = "0.3.18"
-websocket = "0.15.2"
 url = "*"
+websocket = "0.15.2"
