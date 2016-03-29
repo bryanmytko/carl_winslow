@@ -79,7 +79,10 @@ impl Connection {
             .expect(ERR_RTM_CONNECTION);
 
         let mut buffer = String::new();
-        handshake_request.read_to_string(&mut buffer).map_err(|e| { e });
+        match handshake_request.read_to_string(&mut buffer) {
+            Ok(_) => (),
+            Err(e) => panic!(e),
+        };
 
         let response = Json::from_str(&buffer).expect("Invalid JSON: {}");
 

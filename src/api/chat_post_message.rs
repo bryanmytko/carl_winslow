@@ -18,7 +18,7 @@ pub fn send(message: &str) {
     let mut request_uri = String::from(::api::API_URI);
     request_uri.push_str(METHOD);
 
-    client.post(request_uri.as_str())
+    let _ = client.post(request_uri.as_str())
         .body(&request_string)
         .headers(headers)
         .send();
