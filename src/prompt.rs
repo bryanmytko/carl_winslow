@@ -1,9 +1,9 @@
 use std::io::{self, Write};
 
 pub fn display(){
-    io::stdout().flush();
-    io::stdout().write(b"> ");
-    io::stdout().flush();
+    let _ = io::stdout().flush();
+    let _ = io::stdout().write(b"> ");
+    let _ = io::stdout().flush();
 }
 
 pub fn flush(){
