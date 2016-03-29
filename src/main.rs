@@ -31,7 +31,8 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let tx_1 = tx.clone();
 
-    let send_loop = thread::spawn(move || {
+    /* Send Loop */
+    thread::spawn(move || {
         loop {
             let message: Message = match rx.recv() {
                 Ok(message) => message,
@@ -50,7 +51,8 @@ fn main() {
         }
     });
 
-    let receive_loop = thread::spawn(move || {
+    /* Receive Loop */
+    thread::spawn(move || {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
                 Ok(message) => message,
