@@ -23,7 +23,8 @@ pub struct Connection {
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
 
-const MSG_WELCOME: &'static str = "Carl Winslow is online. What can I help you with?";
+const MSG_WELCOME: &'static str = "Carl Winslow is online. \
+    What can I help you with?";
 
 const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
@@ -31,7 +32,7 @@ const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
 const ERR_RTM_CONNECTION: &'static str = "Could not reach Slack RTM API. \
     Check connection.\n";
 
-const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` not found.\n";
+const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` missing.\n";
 
 impl Connection {
     pub fn new() -> Connection {
@@ -75,12 +76,12 @@ impl Connection {
             .body(request_string)
             .headers(headers)
             .send()
-            .expect(ERR_RTM_CONNECTION);  // @TODO try!
+            .expect(ERR_RTM_CONNECTION);
 
         let mut buffer = String::new();
         handshake_request.read_to_string(&mut buffer).map_err(|e| { e });
 
-        let response = Json::from_str(&buffer).expect("Invalid JSON: {}"); // @TODO try!
+        let response = Json::from_str(&buffer).expect("Invalid JSON: {}");
 
         let response_string = response.as_object().and_then(|obj| {
             obj.get("url").and_then(|json| {

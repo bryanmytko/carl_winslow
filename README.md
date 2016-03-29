@@ -1,4 +1,5 @@
 # Carl Winslow Bot
+### A Slackbot for Rust using the RTM & Web API
 
 ![Carl Winslow](assets/img.jpg)
 

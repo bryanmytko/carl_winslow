@@ -35,7 +35,7 @@ fn main() {
         loop {
             let message: Message = match rx.recv() {
                 Ok(message) => message,
-                Err(e) => { println!("Message: Unknown Error."); return } // @TODO
+                Err(e) => { println!("{}", e); continue; }
             };
 
             match message.opcode {
@@ -44,7 +44,7 @@ fn main() {
                     sender.send_message(&Message::pong(message.payload));
                     prompt::output("Pong!");
                 },
-                Type::Close => return,
+                Type::Close => { break; }
                 _ => println!("Unknown opcode: {:?}", message.opcode)
             }
         }
@@ -54,7 +54,7 @@ fn main() {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
                 Ok(message) => message,
-                Err(e) => { let _ = tx_1.send(Message::close()); return; }
+                Err(e) => { println!("Receiver error: {}", e); continue; }
             };
 
             match message.opcode {
@@ -63,12 +63,9 @@ fn main() {
                 },
                 Type::Ping => {
                     prompt::output("Ping!");
-                    let _ = { tx_1.send(Message::pong(message.payload)); };
+                    let _ = tx_1.send(Message::pong(message.payload));
                 },
-                Type::Close => {
-                    let _ = tx_1.send(Message::close());
-                    return;
-                },
+                Type::Close => { let _ = tx_1.send(Message::close()); },
                 _ => println!("Unknown opcode for message: {:?}", message),
             }
         }
@@ -78,37 +75,22 @@ fn main() {
 
     loop {
         let mut buffer = String::new();
-        // Remove this expect
-        stdin().read_line(&mut buffer)
-            .expect("Could not understand that command.");
+        stdin().read_line(&mut buffer).unwrap();
         let formatted_command = buffer.trim();
 
-        /* Eventually define server side commands here */
-        /* @TODO note \q works but breaking the loop exits w/o the messages */
-        /* Extract to admin module */
-        let message = match formatted_command {
+        /* @TODO Extract to admin module. Add commands. */
+        match formatted_command {
             "\\q" => {
-                println!("Disconnecting!");
+                println!("Shutting down!");
                 tx.send(Message::close());
-                return;
+                break;
             },
             _ => {
                 prompt::display();
                 Message::text(formatted_command.to_owned())
             }
         };
-
-        match tx.send(message) {
-            Ok(()) => (),
-            Err(e) => {
-                println!("Main Loop: {:?}", e); // debug
-                break;
-            }
-        }
     }
 
-    println!("Waiting for child threads to exit...");
-    let _ = send_loop.join();
-    let _ = receive_loop.join();
     println!("Exited Successfully.");
 }
