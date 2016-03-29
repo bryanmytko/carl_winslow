@@ -1,7 +1,6 @@
 use websocket::{Message};
 use serialize::json::{Json};
 use std::str::from_utf8;
-use std::collections::{BTreeMap};
 
 pub mod custom_handler;
 

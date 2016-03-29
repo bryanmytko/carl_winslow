@@ -1,5 +1,4 @@
 use api::*;
-use regex::Regex;
 
 pub fn send(command: &str) {
     let date = regex!(r"^\d{4}-\d{2}-\d{2}$");

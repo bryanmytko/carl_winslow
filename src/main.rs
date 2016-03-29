@@ -9,10 +9,7 @@ extern crate rustc_serialize as serialize;
 extern crate url;
 extern crate websocket;
 
-use serialize::json::{Json};
-
 use std::io::stdin;
-use std::str::from_utf8;
 use std::sync::mpsc;
 use std::thread;
 
