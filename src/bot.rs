@@ -9,6 +9,8 @@ pub struct Bot<'a> {
 
 impl<'a> Bot<'a> {
     pub fn new(data: Json) -> Bot<'a> {
+        /* @TODO parse the actual values off the data */
+        /* Determine where to shut the bot down */
         Bot {
             awake: true,
             username: "carl_winslow",
