@@ -20,6 +20,7 @@ use connection::Connection;
 
 mod api;
 mod connection;
+
 mod handler;
 mod prompt;
 
@@ -42,8 +43,10 @@ fn main() {
             match message.opcode {
                 Type::Text => handler::push(&message),
                 Type::Pong => {
-                    sender.send_message(&Message::pong(message.payload));
-                    prompt::output("Pong!");
+                    match sender.send_message(&Message::pong(message.payload)) {
+                        Ok(_) => prompt::output("Pong!"),
+                        Err(e) => println!("Ping/Pong failed: {}", e),
+                    }
                 },
                 Type::Close => { break; }
                 _ => println!("Unknown opcode: {:?}", message.opcode)
@@ -84,7 +87,7 @@ fn main() {
         match formatted_command {
             "\\q" => {
                 println!("Shutting down!");
-                tx.send(Message::close());
+                let _ = tx.send(Message::close());
                 break;
             },
             _ => {
