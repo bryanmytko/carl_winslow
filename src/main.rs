@@ -17,10 +17,11 @@ use websocket::message::Type;
 use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
+use bot::Bot;
 
 mod api;
+mod bot;
 mod connection;
-
 mod handler;
 mod prompt;
 
@@ -28,6 +29,8 @@ fn main() {
     let connection = Connection::new();
     let mut sender = connection.sender;
     let mut receiver = connection.receiver;
+
+    let bot = Bot::new(connection.self_data);
 
     let (tx, rx) = mpsc::channel();
     let tx_1 = tx.clone();
