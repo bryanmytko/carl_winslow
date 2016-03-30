@@ -18,6 +18,7 @@ use api::chat_post_message;
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
     pub receiver: Receiver<WebSocketStream>,
+    pub self_data: Json
 }
 
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
@@ -36,11 +37,15 @@ const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` missing.\n";
 
 impl Connection {
     pub fn new() -> Connection {
-        let ws_uri = Connection::handshake().expect(ERR_RTM_INVALID);
-        let request = WSClient::connect(ws_uri).expect(ERR_RTM_CONNECTION);
-        let response = request.send().expect(ERR_RTM_CONNECTION);
+        let response = Connection::rtm_start();
 
-        match response.validate() {
+        let ws_uri = Connection::handshake(&response).expect(ERR_RTM_INVALID);
+        let ws_request = WSClient::connect(ws_uri).expect(ERR_RTM_CONNECTION);
+        let ws_response = ws_request.send().expect(ERR_RTM_CONNECTION);
+
+        let self_data = Connection::self_data(&response); //.unwrap(); // @TODO update unwrap
+
+        match ws_response.validate() {
             Ok(_) => {
                 println!("{}", MSG_ONLINE);
                 chat_post_message::send(MSG_WELCOME);
@@ -48,23 +53,16 @@ impl Connection {
             Err(e) => panic!(e)
         };
 
-        let (sender, receiver) = response.begin().split();
+        let (sender, receiver) = ws_response.begin().split();
 
         Connection {
             sender: sender,
-            receiver: receiver
+            receiver: receiver,
+            self_data: self_data,
         }
     }
 
-    // @TODO Pattern for implementing From for JSON errors
-    // impl<'a, E: Error + 'a> From<E> for Box<Error + 'a>
-    // impl From<std::num::ParseIntError> for ParserError {
-    //     fn from(_: std::num::ParseIntError) -> ParserError {
-    //         ParserError{message: "Invalid data type".to_string()}
-    //     }
-    // }
-
-    fn handshake() -> Result<WSUrl, ParseError> {
+    fn rtm_start() -> Json {
         let client = Client::new();
         let mut headers = Headers::new();
         headers.set(ContentType::form_url_encoded());
@@ -84,8 +82,10 @@ impl Connection {
             Err(e) => panic!(e),
         };
 
-        let response = Json::from_str(&buffer).expect("Invalid JSON: {}");
+        Json::from_str(&buffer).expect("Invalid JSON: {}")
+    }
 
+    fn handshake(response: &Json) -> Result<WSUrl, ParseError> {
         let response_string = response.as_object().and_then(|obj| {
             obj.get("url").and_then(|json| {
                 json.as_string()
@@ -93,5 +93,14 @@ impl Connection {
         }).expect(ERR_INVALID_JSON_URL);
 
         WSUrl::parse(response_string)
+    }
+
+    /* This is confusing. Self refers to the bot whose API token we are using */
+    fn self_data(response: &Json) -> Json {
+        let json = response.as_object().and_then(|obj| {
+            obj.get("self")
+        }).expect(ERR_INVALID_JSON_URL);
+
+        json.clone()
     }
 }
