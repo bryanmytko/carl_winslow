@@ -4,8 +4,10 @@ pub fn send(message: &str) {
     let mut headers = ::api::set_headers();
     let client = ::api::set_client(&mut headers);
 
-    // @TODO This stuff is just for testing. Pull actual data off the bot connection.
+    // @TODO This stuff is just for testing.
+    // Pull actual data off the bot connection.
     let mut request_string = String::new();
+
     request_string.push_str("token=");
     request_string.push_str(dotenv!("APIKEY"));
     request_string.push_str("&channel=D0TABF474");
