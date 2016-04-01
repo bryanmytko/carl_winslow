@@ -52,24 +52,20 @@ impl<'a> Encodable for Msg<'a> {
 }
 
 
-pub fn send<'a>(message: &Message, text: &str) -> String {
+pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
     let obj = Msg {
         id: unsafe { MSG_ID },
         _type: "message",
         channel: "D0TABF474",
-        text: "Hello world"
+        text: text
     };
 
     unsafe { MSG_ID += 1 };
 
     let encoded = json::encode(&obj).unwrap(); //.to_string();
 
-    //let msg_r = sender.send_message(Message::text(encoded));
-
     // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
     // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
 
-    // Message::text(encoded)
-    println!("#{:?}", encoded);
-    encoded
+   Some(encoded)
 }
