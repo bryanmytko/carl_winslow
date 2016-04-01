@@ -47,6 +47,8 @@ fn main() {
 
             match message.opcode {
                 Type::Text => {
+                    // println!("{:?}", message);
+                    prompt::flush();
                     match handler::push(&message) {
                         Some(p) => { sender.send_message(&Message::text(p)); },
                         None => println!("Text message with no payload."),
@@ -69,7 +71,7 @@ fn main() {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
                 Ok(message) => message,
-                Err(e) => { println!("Receiver error: {}", e); break; } //continue; }
+                Err(e) => { println!("Receiver error: {}", e); continue; }
             };
 
             match message.opcode {
