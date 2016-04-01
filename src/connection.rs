@@ -11,9 +11,18 @@ use websocket::stream::WebSocketStream;
 use websocket::sender::Sender;
 use websocket::receiver::Receiver;
 
-use serialize::json::Json;
+// use serialize::json;
+// use serialize::json::Json;
+
+use rustc_serialize::Encodable;
+use rustc_serialize::Encoder;
+use rustc_serialize::json::{self, ToJson, Json};
+
+use websocket::{Message};
 
 use api::chat_post_message;
+
+use std::str::from_utf8;
 
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
@@ -43,12 +52,14 @@ impl Connection {
         let ws_request = WSClient::connect(ws_uri).expect(ERR_RTM_CONNECTION);
         let ws_response = ws_request.send().expect(ERR_RTM_CONNECTION);
 
-        let self_data = Connection::self_data(&response); //.unwrap(); // @TODO update unwrap
+        let self_data = Connection::self_data(&response);
 
         match ws_response.validate() {
             Ok(_) => {
                 println!("{}", MSG_ONLINE);
-                chat_post_message::send(MSG_WELCOME);
+                //chat_post_message::send(MSG_WELCOME);
+                // request_string.push_str("&channel=);
+
             },
             Err(e) => panic!(e)
         };

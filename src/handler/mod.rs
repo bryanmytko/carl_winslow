@@ -1,5 +1,5 @@
 use websocket::{Message};
-use serialize::json::{Json};
+use rustc_serialize::json::{Json};
 use std::str::from_utf8;
 
 pub mod custom_handler;

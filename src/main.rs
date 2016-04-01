@@ -5,7 +5,7 @@
 extern crate dotenv;
 extern crate hyper;
 extern crate regex;
-extern crate rustc_serialize as serialize;
+extern crate rustc_serialize;// as serialize;
 extern crate url;
 extern crate websocket;
 
@@ -19,6 +19,8 @@ use websocket::{Message, Sender, Receiver};
 use connection::Connection;
 use bot::Bot;
 
+use api::chat_post_message;
+
 mod api;
 mod bot;
 mod connection;
@@ -30,7 +32,7 @@ fn main() {
     let mut sender = connection.sender;
     let mut receiver = connection.receiver;
 
-    let bot = Bot::new(connection.self_data);
+    let bot = Bot::new(&connection.self_data);
 
     let (tx, rx) = mpsc::channel();
     let tx_1 = tx.clone();
@@ -46,6 +48,10 @@ fn main() {
             match message.opcode {
                 Type::Text => handler::push(&message),
                 Type::Pong => {
+
+                    let encoded = chat_post_message::rtm_send();
+                    sender.send_message(&Message::text(encoded));
+
                     match sender.send_message(&Message::pong(message.payload)) {
                         Ok(_) => prompt::output("Pong!"),
                         Err(e) => println!("Ping/Pong failed: {}", e),

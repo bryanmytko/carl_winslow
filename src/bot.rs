@@ -1,4 +1,4 @@
-use serialize::json::Json;
+use rustc_serialize::json::Json;
 
 pub struct Bot<'a> {
     awake: bool,
@@ -8,12 +8,16 @@ pub struct Bot<'a> {
 }
 
 impl<'a> Bot<'a> {
-    pub fn new(data: Json) -> Bot<'a> {
-        /* @TODO parse the actual values off the data */
-        /* Determine where to shut the bot down */
+    pub fn new(data: &'a Json) -> Bot<'a> {
+        let username = data.as_object().and_then(|obj| {
+            obj.get("name").and_then(|json| {
+                json.as_string().clone()
+            })
+        });
+
         Bot {
             awake: true,
-            username: "carl_winslow",
+            username: username.unwrap_or("bot"),
             icon: "",
             channel: vec![""],
         }
