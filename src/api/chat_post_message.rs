@@ -4,6 +4,8 @@ use rustc_serialize::json::{self, ToJson, Json};
 use std::str::from_utf8;
 use websocket::{Message};
 
+static mut MSG_ID: u32 = 0;
+
 struct Msg<'a> {
     id: u32,
     _type: &'a str,
@@ -52,11 +54,13 @@ impl<'a> Encodable for Msg<'a> {
 
 pub fn send<'a>(message: &Message, text: &str) -> String {
     let obj = Msg {
-        id: 12343,
+        id: unsafe { MSG_ID },
         _type: "message",
         channel: "D0TABF474",
         text: "Hello world"
     };
+
+    unsafe { MSG_ID += 1 };
 
     let encoded = json::encode(&obj).unwrap(); //.to_string();
 
@@ -66,24 +70,6 @@ pub fn send<'a>(message: &Message, text: &str) -> String {
     // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
 
     // Message::text(encoded)
-    encoded
-}
-
-pub fn rtm_send(message: &str) -> String {
-    let obj = Msg {
-        id: 12343,
-        _type: "message",
-        channel: "D0TABF474",
-        text: "Hello world"
-    };
-
-    let encoded = json::encode(&obj).unwrap(); //.to_string();
-
-    //let msg_r = sender.send_message(Message::text(encoded));
-
-    // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
-    // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
-
-    // Message::text(encoded)
+    println!("#{:?}", encoded);
     encoded
 }
