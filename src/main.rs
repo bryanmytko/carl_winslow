@@ -47,7 +47,6 @@ fn main() {
 
             match message.opcode {
                 Type::Text => {
-                    // println!("{:?}", message);
                     prompt::flush();
                     match handler::push(&message) {
                         Some(p) => { sender.send_message(&Message::text(p)); },
