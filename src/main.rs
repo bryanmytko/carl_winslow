@@ -47,8 +47,10 @@ fn main() {
 
             match message.opcode {
                 Type::Text => {
-                    let payload = handler::push(&message);
-                    sender.send_message(&Message::text(payload));
+                    match handler::push(&message) {
+                        Some(p) => { sender.send_message(&Message::text(p)); },
+                        None => println!("Text message with no payload."),
+                    };
                 },
                 Type::Pong => {
                     match sender.send_message(&Message::pong(message.payload)) {
