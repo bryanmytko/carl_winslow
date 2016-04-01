@@ -23,9 +23,11 @@ You can create custom handlers for string and pattern matches in:
         _ => (),
     };
 
-### Exiting
+### Admin commands
 
-`\q` command will exit the program and take the bot offline. While this command currently works, it's not as clean as it could be as the threads crash instead of silently joining.
+The following commands are available via the command line:
+
+`\q` command will exit the program and take the bot offline.
 
 ### Connecting
 
