@@ -1,5 +1,7 @@
-# Carl Winslow Bot
-### A Slackbot for Rust using the RTM & Web API
+# Carl Winslow
+### A Slackbot for Rust
+
+Hopefully will also expose the entire RTM API
 
 ![Carl Winslow](assets/img.jpg)
 
