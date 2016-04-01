@@ -1,11 +1,12 @@
 use api::*;
+use websocket::{Message};
 
-pub fn send(command: &str) {
+pub fn send(message: &Message, command: &str) -> String {
     let date = regex!(r"^\d{4}-\d{2}-\d{2}$");
 
     match command {
-        "hi" => { chat_post_message::send("Hi, it's Carl!"); },
-        _ if date.is_match(command) => { chat_post_message::send("That's a date!"); },
-        _ => (),
-    };
+        "hi" => chat_post_message::send(message, "Hi, it's Carl!"),
+        _ if date.is_match(command) => chat_post_message::send(message, "That's a date!"),
+        _ => chat_post_message::send(message, "I didn't understand that command."),
+    }
 }

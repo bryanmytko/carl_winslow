@@ -46,12 +46,11 @@ fn main() {
             };
 
             match message.opcode {
-                Type::Text => handler::push(&message),
+                Type::Text => {
+                    let payload = handler::push(&message);
+                    sender.send_message(&Message::text(payload));
+                },
                 Type::Pong => {
-
-                    let encoded = chat_post_message::rtm_send();
-                    sender.send_message(&Message::text(encoded));
-
                     match sender.send_message(&Message::pong(message.payload)) {
                         Ok(_) => prompt::output("Pong!"),
                         Err(e) => println!("Ping/Pong failed: {}", e),
@@ -68,7 +67,7 @@ fn main() {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
                 Ok(message) => message,
-                Err(e) => { println!("Receiver error: {}", e); continue; }
+                Err(e) => { println!("Receiver error: {}", e); break; } //continue; }
             };
 
             match message.opcode {

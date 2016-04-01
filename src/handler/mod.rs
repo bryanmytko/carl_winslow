@@ -4,7 +4,7 @@ use std::str::from_utf8;
 
 pub mod custom_handler;
 
-pub fn push(message: &Message){
+pub fn push(message: &Message) -> String {
     let json_object = parse_payload(message)
         .as_object()
         .unwrap()
@@ -14,9 +14,9 @@ pub fn push(message: &Message){
     match json_object {
         Some(c) => {
             let cmd = c.as_string().unwrap_or("");
-            custom_handler::send(cmd);
+            custom_handler::send(message, cmd)
         },
-        None => ()
+        None => String::new(),
     }
 }
 
