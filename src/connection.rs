@@ -1,18 +1,16 @@
 use std::io::Read;
+use std::str::from_utf8;
+
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
 
 use url::{ParseError};
 
 use websocket::client::request::{Url as WSUrl};
-use websocket::{Client as WSClient};
-use websocket::stream::WebSocketStream;
-
-use websocket::sender::Sender;
 use websocket::receiver::Receiver;
-
-// use serialize::json;
-// use serialize::json::Json;
+use websocket::sender::Sender;
+use websocket::stream::WebSocketStream;
+use websocket::{Client as WSClient};
 
 use rustc_serialize::Encodable;
 use rustc_serialize::Encoder;
@@ -20,9 +18,8 @@ use rustc_serialize::json::{self, ToJson, Json};
 
 use websocket::{Message};
 
-use api::chat_post_message;
+use rtm::chat_post_message;
 
-use std::str::from_utf8;
 
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,

@@ -1,4 +1,4 @@
-use api::*;
+use rtm::*;
 use websocket::{Message};
 
 pub fn send(message: &Message, command: &str) -> Option<String> {

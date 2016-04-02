@@ -5,7 +5,7 @@
 extern crate dotenv;
 extern crate hyper;
 extern crate regex;
-extern crate rustc_serialize;// as serialize;
+extern crate rustc_serialize;
 extern crate url;
 extern crate websocket;
 
@@ -18,9 +18,9 @@ use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
 
-use api::chat_post_message;
+use rtm::chat_post_message;
 
-mod api;
+mod rtm;
 mod connection;
 mod handler;
 mod prompt;

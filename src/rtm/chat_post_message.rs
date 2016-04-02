@@ -1,7 +1,9 @@
 use rustc_serialize::Encodable;
 use rustc_serialize::Encoder;
 use rustc_serialize::json::{self, ToJson, Json};
+
 use std::str::from_utf8;
+
 use websocket::{Message};
 
 static mut MSG_ID: u32 = 0;
@@ -13,15 +15,17 @@ struct Msg<'a> {
     text: &'a str,
 }
 
+/* Slack's RTM API requires the JSON field `type` which is a reserved word.
+ * Define our own Encodable for Msg which maps struct's _text => text */
 impl<'a> Encodable for Msg<'a> {
     fn encode<S: Encoder>(&self, encoder: &mut S) -> Result<(), S::Error> {
         match * self {
-            Msg {
-                _type: ref p_type,
-                id: ref p_id,
-                channel: ref p_channel,
-                text: ref p_text
-            } => encoder.emit_struct("Msg", 2usize, |enc| -> _ {
+            Msg { _type: ref p_type,
+                  id: ref p_id,
+                  channel: ref p_channel,
+                  text: ref p_text,
+                } => {
+                encoder.emit_struct("Msg", 2usize, |enc| -> _ {
                     try!(enc.emit_struct_field(
                             "type",
                             0usize,
@@ -45,14 +49,14 @@ impl<'a> Encodable for Msg<'a> {
                         1usize,
                         |enc| -> _ { (* p_id).encode(enc) }
                     )
-                }
-            ),
+                })
+            }
         }
     }
 }
 
-
 pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
+    /* @TODO pull channel off incoming message. */
     let obj = Msg {
         id: unsafe { MSG_ID },
         _type: "message",
