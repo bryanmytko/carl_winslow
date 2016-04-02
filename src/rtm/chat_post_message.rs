@@ -1,8 +1,6 @@
 use rustc_serialize::Encodable;
 use rustc_serialize::Encoder;
-use rustc_serialize::json::{self, ToJson, Json};
-
-use std::str::from_utf8;
+use rustc_serialize::json::{self};
 
 use websocket::{Message};
 

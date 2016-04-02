@@ -18,8 +18,6 @@ use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
 
-use rtm::chat_post_message;
-
 mod rtm;
 mod connection;
 mod handler;
@@ -45,7 +43,9 @@ fn main() {
                 Type::Text => {
                     prompt::flush();
                     match handler::push(&message) {
-                        Some(p) => { sender.send_message(&Message::text(p)); },
+                        Some(p) => {
+                            let _ = sender.send_message(&Message::text(p));
+                        },
                         None => println!("Text message with no payload."),
                     };
                 },

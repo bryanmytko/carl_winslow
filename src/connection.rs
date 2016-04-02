@@ -1,5 +1,4 @@
 use std::io::Read;
-use std::str::from_utf8;
 
 use hyper::Client;
 use hyper::header::{Headers, ContentType};
@@ -12,14 +11,7 @@ use websocket::sender::Sender;
 use websocket::stream::WebSocketStream;
 use websocket::{Client as WSClient};
 
-use rustc_serialize::Encodable;
-use rustc_serialize::Encoder;
-use rustc_serialize::json::{self, ToJson, Json};
-
-use websocket::{Message};
-
-use rtm::chat_post_message;
-
+use rustc_serialize::json::{Json};
 
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
@@ -30,8 +22,8 @@ pub struct Connection {
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
 
-const MSG_WELCOME: &'static str = "Carl Winslow is online. \
-    What can I help you with?";
+// const MSG_WELCOME: &'static str = "Carl Winslow is online. \
+//     What can I help you with?";
 
 const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
