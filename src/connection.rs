@@ -16,7 +16,8 @@ use rustc_serialize::json::{Json};
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
     pub receiver: Receiver<WebSocketStream>,
-    pub self_data: Json
+    pub self_data: Json,
+    pub channels: Vec<String>,
 }
 
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
@@ -32,6 +33,7 @@ const ERR_RTM_CONNECTION: &'static str = "Could not reach Slack RTM API. \
     Check connection.\n";
 
 const ERR_INVALID_JSON_URL: &'static str = "Invalid JSON: key `url` missing.\n";
+const ERR_INVALID_JSON: &'static str = "Invalid JSON: key {} missing.\n";
 
 impl Connection {
     pub fn new() -> Connection {
@@ -42,10 +44,12 @@ impl Connection {
         let ws_response = ws_request.send().expect(ERR_RTM_CONNECTION);
 
         let self_data = Connection::self_data(&response);
+        let channels = Connection::channels(&response);
 
         match ws_response.validate() {
             Ok(_) => {
                 println!("{}", MSG_ONLINE);
+                // @TODO Add welcome message to channels
                 //chat_post_message::send(MSG_WELCOME);
                 // request_string.push_str("&channel=);
 
@@ -59,6 +63,7 @@ impl Connection {
             sender: sender,
             receiver: receiver,
             self_data: self_data,
+            channels: channels,
         }
     }
 
@@ -99,8 +104,43 @@ impl Connection {
     fn self_data(response: &Json) -> Json {
         let json = response.as_object().and_then(|obj| {
             obj.get("self")
-        }).expect(ERR_INVALID_JSON_URL);
+        }).expect(ERR_INVALID_JSON);
 
         json.clone()
+    }
+
+    fn channels(response: &Json) -> Vec<String> {
+        let mut channels = Vec::new();
+        let all_channels = response.find_path(&["channels"]);
+
+        /* There must be an easier way... */
+        match all_channels {
+            Some(c) => {
+                let channels_array = c.as_array();
+                for array in channels_array {
+                    for channel in array {
+                        match channel["is_member"].as_boolean() {
+                            Some(m) => {
+                                match m {
+                                    true => {
+                                        channels.push(
+                                            channel["id"]
+                                                .as_string()
+                                                .unwrap()
+                                                .to_owned()
+                                        )
+                                    },
+                                    _ => (),
+                                }
+                            },
+                            None => ()
+                        }
+                    }
+                }
+            },
+            None => (),
+        };
+
+        channels
     }
 }
