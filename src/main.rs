@@ -62,7 +62,7 @@ fn main() {
                     }
                 },
                 Type::Close => {
-                    sender.send_message(&Message::close());
+                    let _ = sender.send_message(&Message::close());
                     break
                 },
                 _ => println!("Unknown opcode: {:?}", message.opcode),
@@ -110,7 +110,7 @@ fn main() {
 
         /* @TODO Extract to admin module. Add commands. */
         match formatted_command {
-            "\\q" => {
+            "exit" => {
                 println!("Shutting down...");
                 break
             },

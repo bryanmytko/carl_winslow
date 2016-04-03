@@ -27,7 +27,7 @@ You can create custom handlers for string and pattern matches in:
 
 The following commands are available via the command line:
 
-`\q` command will exit the program and take the bot offline.
+`exit` command will exit the program and take the bot offline.
 
 ### Connecting
 
