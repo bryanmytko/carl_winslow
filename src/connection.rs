@@ -13,6 +13,8 @@ use websocket::{Client as WSClient};
 
 use rustc_serialize::json::{Json};
 
+use rtm::*;
+
 pub struct Connection {
     pub sender: Sender<WebSocketStream>,
     pub receiver: Receiver<WebSocketStream>,
@@ -22,9 +24,6 @@ pub struct Connection {
 
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
-
-// const MSG_WELCOME: &'static str = "Carl Winslow is online. \
-//     What can I help you with?";
 
 const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
