@@ -12,36 +12,21 @@ extern crate websocket;
 use std::io::stdin;
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
 
 use websocket::message::Type;
 use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
 
-
-use rtm::*;
-
 mod rtm;
 mod connection;
 mod handler;
 mod prompt;
 
-const MSG_WELCOME: &'static str = "Carl Winslow is online. \
-    What can I help you with?";
-
 fn main() {
     let connection = Connection::new();
     let mut sender = connection.sender;
     let mut receiver = connection.receiver;
-
-    /* @TODO REMOVE Testing typing/pause/text effect */
-    let t = typing::send(&Message::text("")).unwrap();
-    let g = message::send(&Message::text(""), MSG_WELCOME).unwrap();
-    sender.send_message(&Message::text(t));
-    thread::sleep(Duration::from_millis(2000));
-    sender.send_message(&Message::text(g));
-    /****************************************/
 
     let (tx, rx) = mpsc::channel();
     let tx_1 = tx.clone();
