@@ -1,6 +1,8 @@
+use std::str::from_utf8;
+
 use rustc_serialize::Encodable;
 use rustc_serialize::Encoder;
-use rustc_serialize::json::{self};
+use rustc_serialize::json::{self, Json};
 
 use websocket::{Message};
 
@@ -54,22 +56,30 @@ impl<'a> Encodable for Msg<'a> {
 }
 
 pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
-    /* @TODO pull channel off incoming message. */
+    let payload = from_utf8(&message.payload)
+        .expect("Invalid payload: {}");
+
+    let parsed_payload = Json::from_str(payload)
+        .expect("Unable to parse JSON: {}");
+
+    let channel = parsed_payload
+        .find("channel")
+        .unwrap()
+        .as_string()
+        .unwrap();
+
     let obj = Msg {
         id: unsafe { MSG_ID },
         _type: "message",
-        channel: "D0TABF474",
+        channel: channel,
         text: text
     };
 
     unsafe { MSG_ID += 1 };
 
-    let encoded = json::encode(&obj).unwrap(); //.to_string();
+    let encoded = json::encode(&obj).unwrap();
 
-    // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
-    // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
-
-   Some(encoded)
+    Some(encoded)
 }
 
 pub fn greeting<'a>(channel: &str, text: &str) -> String {
@@ -82,10 +92,5 @@ pub fn greeting<'a>(channel: &str, text: &str) -> String {
 
     unsafe { MSG_ID += 1 };
 
-    let encoded = json::encode(&obj).unwrap(); //.to_string();
-
-    // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
-    // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
-    encoded
-
+    json::encode(&obj).unwrap()
 }
