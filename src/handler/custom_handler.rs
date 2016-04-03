@@ -6,6 +6,7 @@ pub fn send(message: &Message, command: &str) -> Option<String> {
 
     match command {
         "hi" => message::send(message, "Hi, it's Carl!"),
+        "type" => typing::send(message),
         _ if date.is_match(command) => message::send(message, "That's a date!"),
         _ => None,
     }
