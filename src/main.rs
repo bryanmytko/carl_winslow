@@ -28,15 +28,18 @@ fn main() {
     let mut sender = connection.sender;
     let mut receiver = connection.receiver;
 
-    let (tx, rx) = mpsc::channel();
-    let tx_1 = tx.clone();
+    let (transmission, receiving) = mpsc::channel();
+    let transmission2 = transmission.clone();
 
     /* Send Loop */
     thread::spawn(move || {
         loop {
-            let message: Message = match rx.recv() {
+            let message: Message = match receiving.recv() {
                 Ok(message) => message,
-                Err(e) => { println!("{}", e); continue; }
+                Err(e) => {
+                    println!("Skipping receiving error: {}", e);
+                    continue
+                },
             };
 
             match message.opcode {
@@ -44,10 +47,12 @@ fn main() {
                     prompt::flush();
                     match handler::push(&message) {
                         Some(p) => {
-                            // Explore the possibility of passing a reference to the sender?
                             let _ = sender.send_message(&Message::text(p));
                         },
-                        None => println!("Text message with no payload."),
+                        None => {
+                            println!("Skipping text message with no payload.");
+                            prompt::display()
+                        },
                     };
                 },
                 Type::Pong => {
@@ -56,8 +61,11 @@ fn main() {
                         Err(e) => println!("Ping/Pong failed: {}", e),
                     }
                 },
-                Type::Close => { break; }
-                _ => println!("Unknown opcode: {:?}", message.opcode)
+                Type::Close => {
+                    sender.send_message(&Message::close());
+                    break
+                },
+                _ => println!("Unknown opcode: {:?}", message.opcode),
             }
         }
     });
@@ -67,18 +75,27 @@ fn main() {
         for message in receiver.incoming_messages() {
             let message: Message = match message {
                 Ok(message) => message,
-                Err(e) => { println!("Receiver error: {}", e); continue; }
+                Err(e) => {
+                    println!("Receiver error: {}", e);
+                    continue
+                },
             };
 
             match message.opcode {
                 Type::Text => {
-                    let _ = tx_1.send(message);
+                    let _ = transmission2.send(message);
                 },
                 Type::Ping => {
                     prompt::output("Ping!");
-                    let _ = tx_1.send(Message::pong(message.payload));
+                    match transmission2.send(Message::pong(message.payload)) {
+                        Ok(_) => (),
+                        Err(e) => println!("Ping/Pong failed: {}", e)
+                    }
                 },
-                Type::Close => { let _ = tx_1.send(Message::close()); },
+                Type::Close => {
+                    let _ = transmission2.send(Message::close());
+                    break;
+                },
                 _ => println!("Unknown opcode for message: {:?}", message),
             }
         }
@@ -94,14 +111,13 @@ fn main() {
         /* @TODO Extract to admin module. Add commands. */
         match formatted_command {
             "\\q" => {
-                println!("Shutting down!");
-                let _ = tx.send(Message::close());
-                break;
+                println!("Shutting down...");
+                break
             },
             _ => {
                 prompt::display();
                 Message::text(formatted_command.to_owned())
-            }
+            },
         };
     }
 
