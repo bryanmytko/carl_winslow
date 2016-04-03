@@ -1,6 +1,8 @@
+use std::str::from_utf8;
+
 use rustc_serialize::Encodable;
 use rustc_serialize::Encoder;
-use rustc_serialize::json::{self};
+use rustc_serialize::json::{self, Json};
 
 use websocket::{Message};
 
@@ -45,18 +47,27 @@ impl<'a> Encodable for Typing<'a> {
 }
 
 pub fn send<'a>(message: &Message) -> Option<String> {
+    let payload = from_utf8(&message.payload)
+        .expect("Invalid payload: {}");
+
+    let parsed_payload = Json::from_str(payload)
+        .expect("Unable to parse JSON: {}");
+
+    let channel = parsed_payload
+        .find("channel")
+        .unwrap()
+        .as_string()
+        .unwrap();
+
     let obj = Typing {
         id: unsafe { TYPING_ID },
         _type: "typing",
-        channel: "D0TABF474",
+        channel: channel
     };
 
     unsafe { TYPING_ID += 1 };
 
     let encoded = json::encode(&obj).unwrap(); //.to_string();
 
-    // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
-    // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
-
-   Some(encoded)
+    Some(encoded)
 }
