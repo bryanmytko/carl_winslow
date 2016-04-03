@@ -10,6 +10,7 @@ use websocket::receiver::Receiver;
 use websocket::sender::Sender;
 use websocket::stream::WebSocketStream;
 use websocket::{Client as WSClient};
+use websocket::{Message, Sender as WSSender};
 
 use rustc_serialize::json::{Json};
 
@@ -24,6 +25,9 @@ pub struct Connection {
 
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
     Enter a command:\n(type \\q to quit)\n ";
+
+const MSG_WELCOME: &'static str = "Carl Winslow is online. \
+    What can I help you with?";
 
 const ERR_RTM_INVALID: &'static str = "RTM response not validated. Check \
     your API credentials.\n";
@@ -48,6 +52,7 @@ impl Connection {
         match ws_response.validate() {
             Ok(_) => {
                 println!("{}", MSG_ONLINE);
+
                 // @TODO Add welcome message to channels
                 //chat_post_message::send(MSG_WELCOME);
                 // request_string.push_str("&channel=);
@@ -56,7 +61,11 @@ impl Connection {
             Err(e) => panic!(e)
         };
 
-        let (sender, receiver) = ws_response.begin().split();
+        let (mut sender, receiver) = ws_response.begin().split();
+
+        /* @TODO Change the slice to a vec and have the greeting method loop */
+        let greeting = message::greeting(&channels[0][..], MSG_WELCOME);
+        let _ = sender.send_message(&Message::text(greeting));
 
         Connection {
             sender: sender,
