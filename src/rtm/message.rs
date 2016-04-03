@@ -71,3 +71,21 @@ pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
 
    Some(encoded)
 }
+
+pub fn greeting<'a>(channel: &str, text: &str) -> String {
+    let obj = Msg {
+        id: unsafe { MSG_ID },
+        _type: "message",
+        channel: channel,
+        text: text
+    };
+
+    unsafe { MSG_ID += 1 };
+
+    let encoded = json::encode(&obj).unwrap(); //.to_string();
+
+    // let payload = from_utf8(&msg_r.payload).expect("Invalid payload: {}");
+    // let payload_str = Json::from_str(payload).expect("Unable to parse JSON: {}");
+    encoded
+
+}
