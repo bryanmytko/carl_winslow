@@ -56,17 +56,16 @@ impl<'a> Encodable for Msg<'a> {
 }
 
 pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
-    let payload = from_utf8(&message.payload)
-        .expect("Invalid payload: {}");
+    let payload = from_utf8(&message.payload).unwrap_or("");
 
     let parsed_payload = Json::from_str(payload)
-        .expect("Unable to parse JSON: {}");
+        .expect("Invalid payload: {}");
 
     let channel = parsed_payload
         .find("channel")
-        .unwrap()
-        .as_string()
-        .unwrap();
+        .and_then(|json|
+            json.as_string()
+        ).unwrap_or("");
 
     let obj = Msg {
         id: unsafe { MSG_ID },
@@ -77,12 +76,10 @@ pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
 
     unsafe { MSG_ID += 1 };
 
-    let encoded = json::encode(&obj).unwrap();
-
-    Some(encoded)
+    json::encode(&obj).ok()
 }
 
-pub fn greeting<'a>(channel: &str, text: &str) -> String {
+pub fn greeting<'a>(channel: &str, text: &str) -> Option<String> {
     let obj = Msg {
         id: unsafe { MSG_ID },
         _type: "message",
@@ -92,5 +89,5 @@ pub fn greeting<'a>(channel: &str, text: &str) -> String {
 
     unsafe { MSG_ID += 1 };
 
-    json::encode(&obj).unwrap()
+    json::encode(&obj).ok()
 }
