@@ -24,7 +24,7 @@ pub struct Connection {
 }
 
 const MSG_ONLINE: &'static str = "Connected! Welcome to Carl Winslow Bot. \
-    Enter a command:\n(type \\q to quit)\n ";
+    Enter a command:\n(type `exit` to quit)\n ";
 
 const MSG_WELCOME: &'static str = "Carl Winslow is online. \
     What can I help you with?";
