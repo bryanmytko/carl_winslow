@@ -14,10 +14,7 @@ pub fn push(message: &Message) -> Option<String> {
     match json_object {
         Some(c) => {
             let cmd = c.as_string().unwrap_or("");
-            match custom_handler::send(message, cmd){
-                Some(c) => Some(c),
-                None => None,
-            }
+            custom_handler::send(message, cmd)
         },
         None => None,
     }
