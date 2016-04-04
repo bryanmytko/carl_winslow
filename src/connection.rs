@@ -50,22 +50,19 @@ impl Connection {
         let channels = Connection::channels(&response);
 
         match ws_response.validate() {
-            Ok(_) => {
-                println!("{}", MSG_ONLINE);
-
-                // @TODO Add welcome message to channels
-                //chat_post_message::send(MSG_WELCOME);
-                // request_string.push_str("&channel=);
-
-            },
+            Ok(_) => println!("{}", MSG_ONLINE),
             Err(e) => panic!(e)
         };
 
         let (mut sender, receiver) = ws_response.begin().split();
 
-        /* @TODO Change the slice to a vec and have the greeting method loop */
+        /* @TODO This should probably go somewhere else. Kinda of a side effect.
+           @TODO Change the slice to a vec and have the greeting method loop */
         let greeting = message::greeting(&channels[0][..], MSG_WELCOME);
-        let _ = sender.send_message(&Message::text(greeting));
+        match greeting {
+            Some(v) => { let _ = sender.send_message(&Message::text(v)); },
+            None => ()
+        }
 
         Connection {
             sender: sender,
