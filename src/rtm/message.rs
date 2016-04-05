@@ -65,8 +65,8 @@ pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
             p.find("channel").and_then(|json|
                  json.as_string()
             ).unwrap_or("")
-        }
-        None => ""
+        },
+        None => "",
     };
 
     let obj = Msg {
