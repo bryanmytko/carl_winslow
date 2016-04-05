@@ -105,7 +105,9 @@ fn main() {
 
     loop {
         let mut buffer = String::new();
-        stdin().read_line(&mut buffer).unwrap();
+        let _ = stdin().read_line(&mut buffer).map_err(|err|
+            println!("{}", err)
+        );
         let formatted_command = buffer.trim();
 
         /* @TODO Extract to admin module. Add commands. */
