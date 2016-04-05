@@ -68,7 +68,5 @@ pub fn send<'a>(message: &Message) -> Option<String> {
 
     unsafe { TYPING_ID += 1 };
 
-    let encoded = json::encode(&obj).unwrap();
-
-    Some(encoded)
+    json::encode(&obj).ok()
 }
