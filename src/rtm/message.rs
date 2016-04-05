@@ -58,14 +58,16 @@ impl<'a> Encodable for Msg<'a> {
 pub fn send<'a>(message: &Message, text: &str) -> Option<String> {
     let payload = from_utf8(&message.payload).unwrap_or("");
 
-    let parsed_payload = Json::from_str(payload)
-        .expect("Invalid payload: {}");
+    let parsed_payload = Json::from_str(payload).ok();
 
-    let channel = parsed_payload
-        .find("channel")
-        .and_then(|json|
-            json.as_string()
-        ).unwrap_or("");
+    let channel = match parsed_payload {
+        Some(ref p) => {
+            p.find("channel").and_then(|json|
+                 json.as_string()
+            ).unwrap_or("")
+        }
+        None => ""
+    };
 
     let obj = Msg {
         id: unsafe { MSG_ID },
