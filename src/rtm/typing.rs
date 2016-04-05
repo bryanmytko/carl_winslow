@@ -47,17 +47,18 @@ impl<'a> Encodable for Typing<'a> {
 }
 
 pub fn send<'a>(message: &Message) -> Option<String> {
-    let payload = from_utf8(&message.payload)
-        .expect("Invalid payload: {}");
+    let payload = from_utf8(&message.payload).unwrap_or("");
 
-    let parsed_payload = Json::from_str(payload)
-        .expect("Unable to parse JSON: {}");
+    let parsed_payload = Json::from_str(payload).ok();
 
-    let channel = parsed_payload
-        .find("channel")
-        .unwrap()
-        .as_string()
-        .unwrap();
+    let channel = match parsed_payload {
+        Some(ref p) => {
+            p.find("channel").and_then(|json|
+                json.as_string()
+            ).unwrap_or("")
+        },
+        None => "",
+    };
 
     let obj = Typing {
         id: unsafe { TYPING_ID },
