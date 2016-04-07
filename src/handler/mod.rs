@@ -7,9 +7,9 @@ pub mod custom_handler;
 pub fn push(message: &Message) -> Option<String> {
     let json_object = parse_payload(message)
         .as_object()
-        .unwrap()
-        .get("text")
-        .map(|r| r.clone());
+        .and_then(|obj|
+            obj.get("text").map(|r| r.clone())
+        );
 
     match json_object {
         Some(c) => {
