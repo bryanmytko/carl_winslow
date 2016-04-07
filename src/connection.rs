@@ -118,7 +118,6 @@ impl Connection {
         let mut channels = Vec::new();
         let all_channels = response.find_path(&["channels"]);
 
-        /* There must be an easier way... */
         match all_channels {
             Some(c) => {
                 let channels_array = c.as_array();
@@ -129,10 +128,8 @@ impl Connection {
                                 match m {
                                     true => {
                                         channels.push(
-                                            channel["id"]
-                                                .as_string()
-                                                .unwrap()
-                                                .to_owned()
+                                            channel["id"].as_string()
+                                                .unwrap_or("").to_owned()
                                         )
                                     },
                                     _ => (),
