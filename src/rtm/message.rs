@@ -16,7 +16,7 @@ struct Msg<'a> {
 }
 
 /* Slack's RTM API requires the JSON field `type` which is a reserved word.
- * Define our own Encodable for Msg which maps struct's _text => text */
+ * Define our own Encodable for Msg which maps struct's _type => type */
 impl<'a> Encodable for Msg<'a> {
     fn encode<S: Encoder>(&self, encoder: &mut S) -> Result<(), S::Error> {
         match * self {
