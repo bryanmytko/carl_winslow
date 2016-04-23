@@ -6,6 +6,7 @@ extern crate dotenv;
 extern crate hyper;
 extern crate regex;
 extern crate rustc_serialize;
+extern crate toml;
 extern crate url;
 extern crate websocket;
 
