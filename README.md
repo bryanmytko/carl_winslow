@@ -1,8 +1,6 @@
 # Carl Winslow
 ### A Slackbot for Rust
 
-Hopefully will also expose the entire RTM API
-
 ![Carl Winslow](assets/img.jpg)
 
 ### Creating a bot
@@ -19,7 +17,21 @@ You can create custom handlers for string and pattern matches in:
     let p = regex!(r"^\d{4}-\d{2}-\d{2}$");
 
     match command {
-        _ if p.is_match(command) => { chat_post_message::send("Some response text here"); },
+        _ if p.is_match(command) => message::send(message, "That's a date!"),
+        _ => (),
+    };
+### Custom messaging
+
+You can add custom messaging in the Custom.toml file for handlers.
+
+E.g.,
+
+**/Custom.toml**
+    greeting="Hello!"
+
+**/src/handler/custom_handler.rs**
+    match command {
+        "hi" => { message::send(message, &config.greeting) },
         _ => (),
     };
 
