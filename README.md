@@ -20,6 +20,7 @@ You can create custom handlers for string and pattern matches in:
         _ if p.is_match(command) => message::send(message, "That's a date!"),
         _ => (),
     };
+
 ### Custom messaging
 
 You can add custom messaging in the Custom.toml file for handlers.
@@ -27,9 +28,11 @@ You can add custom messaging in the Custom.toml file for handlers.
 E.g.,
 
 **/Custom.toml**
+
     greeting="Hello!"
 
 **/src/handler/custom_handler.rs**
+
     match command {
         "hi" => { message::send(message, &config.greeting) },
         _ => (),
