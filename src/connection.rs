@@ -56,7 +56,7 @@ impl Connection {
 
         let (mut sender, receiver) = ws_response.begin().split();
 
-        /* @TODO This should probably go somewhere else. Kinda of a side effect.
+        /* @TODO This should probably go somewhere else. Kind of a side effect.
            @TODO Change the slice to a vec and have the greeting method loop */
         let greeting = message::greeting(&channels[0][..], MSG_WELCOME);
         match greeting {
