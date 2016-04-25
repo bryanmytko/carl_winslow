@@ -19,6 +19,8 @@ use websocket::{Message, Sender, Receiver};
 
 use connection::Connection;
 
+use handler::{Handler};
+
 mod rtm;
 mod connection;
 mod handler;
@@ -32,7 +34,7 @@ fn main() {
     let (transmission, receiving) = mpsc::channel();
     let transmission2 = transmission.clone();
 
-    let configuration = handler::load_custom_config();
+    let handler = Handler::new();
 
     /* Send Loop */
     thread::spawn(move || {
@@ -48,7 +50,7 @@ fn main() {
             match message.opcode {
                 Type::Text => {
                     prompt::flush();
-                    match handler::push(&message) {
+                    match handler.push(&message) {
                         Some(p) => {
                             let _ = sender.send_message(&Message::text(p));
                         },
