@@ -6,6 +6,7 @@ extern crate dotenv;
 extern crate hyper;
 extern crate regex;
 extern crate rustc_serialize;
+extern crate toml;
 extern crate url;
 extern crate websocket;
 
@@ -30,6 +31,8 @@ fn main() {
 
     let (transmission, receiving) = mpsc::channel();
     let transmission2 = transmission.clone();
+
+    let configuration = handler::load_custom_config();
 
     /* Send Loop */
     thread::spawn(move || {
