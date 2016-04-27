@@ -12,6 +12,7 @@ pub mod custom_handler;
 pub struct CustomConfig {
     pub greeting: String,
     pub exit_ticket: String,
+    pub set_exit_ticket: String,
 }
 
 pub struct Handler {
@@ -28,7 +29,7 @@ impl Handler {
     fn load_custom_config() -> CustomConfig {
         /* @TODO implement better error handling */
         /* @TODO if no file, build default Config struct */
-        println!("I'm about to load a file");
+        println!("[DEBUG] I'm about to load a file");
         let mut file = File::open("Custom.toml").unwrap();
         let mut toml_data = String::new();
         file.read_to_string(&mut toml_data).unwrap();
