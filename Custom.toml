@@ -1,2 +1,3 @@
 greeting = "Hello, Carl Winslow on board!"
 exit_ticket = "Exit ticket: http://bit.ly/Dj3bl8"
+set_exit_ticket = "Great! I have set the exit ticket link to: "
